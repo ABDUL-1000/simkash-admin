@@ -103,7 +103,7 @@ export default function SignupPage() {
         setErrors({ general: response.message || "Failed to send OTP" })
       }
     } catch (error) {
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
     } finally {
       setIsLoading(false)
     }

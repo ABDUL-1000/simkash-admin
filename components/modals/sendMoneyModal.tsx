@@ -2,18 +2,23 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, CheckCircle } from "lucide-react"
+import { ArrowLeft, CheckCircle, X, Clock } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-
 import { Switch } from "../ui/switch"
 import { ResponsiveModal } from "../mobileDrawer"
 import { FormError } from "../formError"
+import { AuthAPI } from "@/lib/API/api"
 
+interface Bank {
+  id: number
+  name: string
+  code: string
+}
 
 interface SendMoneyModalProps {
   isOpen: boolean
@@ -21,10 +26,9 @@ interface SendMoneyModalProps {
   onSuccess?: (data: any) => void
 }
 
-// Validation schemas for each step
 const stepOneSchema = z.object({
   accountNumber: z.string().min(10, "Account number must be 10 digits").max(10, "Account number must be 10 digits"),
-  bankName: z.string().min(1, "Please select a bank"),
+  bankCode: z.string().min(1, "Please select a bank"),
 })
 
 const stepTwoSchema = z.object({
@@ -47,24 +51,13 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
   const [accountName, setAccountName] = useState("")
   const [isVerifying, setIsVerifying] = useState(false)
   const [isProcessing, setIsProcessing] = useState(false)
-
-  // Store PIN digits as array of strings
+  const [banks, setBanks] = useState<Bank[]>([])
+  const [isLoadingBanks, setIsLoadingBanks] = useState(false)
+  const [bankError, setBankError] = useState("")
   const [pinDigits, setPinDigits] = useState<string[]>(["", "", "", ""])
-
-  // PIN input refs
+  const [transactionStatus, setTransactionStatus] = useState<"delivered" | "failed" | "pending" | null>(null)
+  const [transactionId, setTransactionId] = useState<string>("")
   const pinRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  // Banks list
-  const banks = [
-    { value: "access", label: "Access Bank" },
-    { value: "gtbank", label: "GTBank" },
-    { value: "zenith", label: "Zenith Bank" },
-    { value: "uba", label: "UBA" },
-    { value: "firstbank", label: "First Bank" },
-    { value: "opay", label: "Opay" },
-    { value: "kuda", label: "Kuda Bank" },
-    { value: "sterling", label: "Sterling Bank" },
-  ]
 
   const {
     register,
@@ -74,6 +67,7 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
     setValue,
     reset,
     setError,
+    clearErrors,
   } = useForm<any>({
     resolver: zodResolver(
       step === 1 ? stepOneSchema : step === 2 ? stepTwoSchema : step === 4 ? stepFourSchema : z.object({}),
@@ -81,151 +75,159 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
     mode: "onChange",
     defaultValues: {
       accountNumber: "",
-      bankName: "",
+      bankCode: "",
       amount: 0,
       description: "",
       pin: "",
     },
   })
 
-  // Watch form values
-  const watchedValues = watch()
+  useEffect(() => {
+    const subscription = watch((value, { name }) => {
+      if (name === "amount") {
+        if (value.amount > 1000000) {
+          setError("amount", {
+            type: "manual",
+            message: "Amount exceeds maximum limit",
+          })
+        }
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, setError])
 
-  // Simulate account verification
-  const verifyAccount = async (accountNumber: string, bankName: string) => {
-    if (accountNumber.length === 10 && bankName) {
+  // Fetch banks list on modal open
+  useEffect(() => {
+    if (isOpen) {
+      const fetchBanks = async () => {
+        setIsLoadingBanks(true)
+        setBankError("")
+        try {
+          const response = await AuthAPI.getBanksList()
+          if (response.success) {
+            setBanks(response.data || [])
+          } else {
+            setBankError(response.message || "Failed to load banks")
+          }
+        } catch (error) {
+          setBankError("Network error occurred")
+          console.error("Failed to fetch banks:", error)
+        } finally {
+          setIsLoadingBanks(false)
+        }
+      }
+      fetchBanks()
+    }
+  }, [isOpen])
+
+  const verifyAccount = async (accountNumber: string, bankCode: string) => {
+    if (accountNumber.length === 10 && bankCode) {
       setIsVerifying(true)
-      // Simulate API call
-      setTimeout(() => {
-        const mockNames = ["John Doe", "Jane Smith", "Michael Johnson", "Sarah Wilson", "David Brown"]
-        const randomName = mockNames[Math.floor(Math.random() * mockNames.length)]
-        setAccountName(randomName)
+      setAccountName("")
+
+      try {
+        const response = await AuthAPI.verifyAccount({
+          account_number: accountNumber,
+          bank_code: bankCode,
+        })
+
+        if (response.success) {
+          setAccountName(response.data?.account_name || "Account verified")
+          clearErrors("accountNumber")
+        } else {
+          setError("accountNumber", {
+            type: "manual",
+            message: "Account verification failed",
+          })
+        }
+      } catch (error) {
+        setError("accountNumber", {
+          type: "manual",
+          message: "Failed to verify account",
+        })
+        console.error("Account verification error:", error)
+      } finally {
         setIsVerifying(false)
-      }, 1500)
+      }
     }
   }
 
-  // Handle account number change
   const handleAccountNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 10)
     setValue("accountNumber", value)
+    setAccountName("")
 
-    if (accountName) {
-      setAccountName("")
+    if (errors.accountNumber) {
+      clearErrors("accountNumber")
     }
 
-    if (value.length === 10 && watchedValues.bankName) {
-      verifyAccount(value, watchedValues.bankName)
+    if (value.length === 10 && watch("bankCode")) {
+      verifyAccount(value, watch("bankCode"))
     }
   }
 
-  // Handle bank change
   const handleBankChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setValue("bankName", e.target.value)
-
-    if (accountName) {
-      setAccountName("")
-    }
-
-    if (watchedValues.accountNumber?.length === 10 && e.target.value) {
-      verifyAccount(watchedValues.accountNumber, e.target.value)
+    setValue("bankCode", e.target.value)
+    setAccountName("")
+    if (watch("accountNumber")?.length === 10 && e.target.value) {
+      verifyAccount(watch("accountNumber"), e.target.value)
     }
   }
 
-  // Handle PIN digit change
   const handlePinChange = (index: number, value: string) => {
-    // Only allow numeric input
     if (value && !/^\d$/.test(value)) return
-
-    // Update the specific digit
     const newDigits = [...pinDigits]
     newDigits[index] = value
     setPinDigits(newDigits)
-
-    // Update form value
-    const pinString = newDigits.join("")
-    setValue("pin", pinString)
-
-    // Auto-focus next input if value was entered
+    setValue("pin", newDigits.join(""))
     if (value && index < 3) {
       pinRefs.current[index + 1]?.focus()
     }
-
-    // Clear errors when user starts typing
     if (errors.pin) {
-      setError("pin", { type: "manual", message: "PIN must be 4 digits" })
+      clearErrors("pin")
     }
   }
 
   const handlePinKeyDown = (index: number, e: React.KeyboardEvent) => {
     if (e.key === "Backspace") {
       const newDigits = [...pinDigits]
-
       if (pinDigits[index]) {
-        // Clear current field
         newDigits[index] = ""
-        setPinDigits(newDigits)
-        setValue("pin", newDigits.join(""))
       } else if (index > 0) {
-        // Move to previous field and clear it
         newDigits[index - 1] = ""
-        setPinDigits(newDigits)
-        setValue("pin", newDigits.join(""))
         pinRefs.current[index - 1]?.focus()
       }
+      setPinDigits(newDigits)
+      setValue("pin", newDigits.join(""))
     }
   }
 
-  // Render PIN input function
-  const renderPinInput = () => {
-    return (
-      <div className="flex gap-2 justify-center">
-        {[0, 1, 2, 3].map((index) => (
-          <Input
-            key={index}
-            ref={(el) => {
-              pinRefs.current[index] = el
-            }}
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
-            maxLength={1}
-            value={pinDigits[index]}
-            onChange={(e) => handlePinChange(index, e.target.value)}
-            onKeyDown={(e) => handlePinKeyDown(index, e)}
-            className="w-16 h-16 text-center text-2xl font-semibold border-gray-300 focus:border-cyan-400 focus:ring-cyan-400"
-            placeholder=""
-          />
-        ))}
-      </div>
-    )
-  }
+  const renderPinInput = () => (
+    <div className="flex gap-2 justify-center">
+      {[0, 1, 2, 3].map((index) => (
+        <Input
+          key={index}
+          ref={(el) => {
+            pinRefs.current[index] = el
+          }}
+          type="text"
+          inputMode="numeric"
+          maxLength={1}
+          value={pinDigits[index]}
+          onChange={(e) => handlePinChange(index, e.target.value)}
+          onKeyDown={(e) => handlePinKeyDown(index, e)}
+          className="w-16 h-16 text-center text-2xl font-semibold"
+        />
+      ))}
+    </div>
+  )
 
   const onNext = () => {
-    if (step === 1) {
-      // Manual validation for step 1
-      if (!watchedValues.accountNumber || watchedValues.accountNumber.length !== 10) {
-        return
-      }
-      if (!watchedValues.bankName) {
-        return
-      }
-      if (!accountName) {
-        return // Don't proceed if account name is not verified
-      }
-      setStep(2)
-      return
-    }
-
+    if (step === 1 && (!accountName || isVerifying)) return
     if (step === 2) {
-      // Use form validation for step 2
-      handleSubmit(() => {
-        setStep(3)
-      })()
+      handleSubmit(() => setStep(3))()
       return
     }
-
-    // For other steps
     setStep(step + 1)
   }
 
@@ -238,31 +240,107 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
     setAccountName("")
     setIsProcessing(false)
     setPinDigits(["", "", "", ""])
+    setTransactionStatus(null)
+    setTransactionId("")
     reset()
     onClose()
   }
 
-  const onConfirm = () => {
-    // Move to PIN step
-    setStep(4)
-  }
+  const onConfirm = () => setStep(4)
 
-  const onSubmit = handleSubmit(() => {
-    setIsProcessing(true)
-    // Simulate transaction processing
-    setTimeout(() => {
-      setStep(5)
-      setIsProcessing(false)
-      if (onSuccess) {
-        onSuccess({
-          ...watchedValues,
-          accountName,
-          saveBeneficiary,
-          beneficiaryName,
+  const onSubmit = async () => {
+    try {
+      setIsProcessing(true)
+      clearErrors("root")
+
+      // Get form data and convert PIN to number
+      const pinString = pinDigits.join("")
+      const pinNumber = Number.parseInt(pinString)
+
+      const formData = {
+        amount: Number(watch("amount")),
+        account_number: watch("accountNumber"),
+        bank_code: watch("bankCode"),
+        pin: pinNumber,
+        narration: watch("description") || undefined,
+      }
+
+      // Validate data before sending
+      if (isNaN(formData.amount) || formData.amount <= 0) {
+        setError("amount", {
+          type: "manual",
+          message: "Please enter a valid amount",
+        })
+        return
+      }
+
+      if (isNaN(pinNumber) || pinString.length !== 4) {
+        setError("pin", {
+          type: "manual",
+          message: "Please enter a valid 4-digit PIN",
+        })
+        return
+      }
+
+      if (!formData.account_number || formData.account_number.length !== 10) {
+        setError("accountNumber", {
+          type: "manual",
+          message: "Please enter a valid 10-digit account number",
+        })
+        return
+      }
+
+      if (!formData.bank_code) {
+        setError("bankCode", {
+          type: "manual",
+          message: "Please select a bank",
+        })
+        return
+      }
+
+      console.log("Final Transfer data being sent:", formData)
+
+      const response = await AuthAPI.sendMoney(formData)
+      console.log("Transfer response:", response)
+
+      if (response.success) {
+        // Extract transaction reference and status from response
+        const transactionRef = response.data?.transaction_reference || `TXN${Date.now().toString().slice(-8)}`
+        const status = response.data?.status || "pending"
+
+        console.log("Transaction status from response:", status)
+        console.log("Transfer data:", response.data)
+
+        setTransactionId(transactionRef)
+        setTransactionStatus(status)
+        setStep(5)
+
+        if (onSuccess) {
+          onSuccess({
+            ...formData,
+            accountName,
+            transactionId: transactionRef,
+            timestamp: new Date().toISOString(),
+            status: status,
+          })
+        }
+      } else {
+        console.log("Error message:", response)
+        setError("root", {
+          type: "manual",
+          message: response.message || "Transfer failed",
         })
       }
-    }, 2000)
-  })
+    } catch (error) {
+      console.error("Submit error:", error)
+      setError("root", {
+        type: "manual",
+        message: error instanceof Error ? error.message : "An unexpected error occurred",
+      })
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const getStepTitle = () => {
     switch (step) {
@@ -275,6 +353,8 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
       case 4:
         return "Enter PIN"
       case 5:
+        if (transactionStatus === "failed") return "Transfer Failed"
+        if (transactionStatus === "pending") return "Transfer Pending"
         return "Transfer Complete"
       default:
         return "Send Money"
@@ -282,78 +362,70 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
   }
 
   return (
-    <ResponsiveModal
-      isOpen={isOpen}
-      onClose={onReset}
-      preventOutsideClick={step < 5} // Allow outside click only on success step
-      className="max-w-md bg-gray-50 border-0"
-    >
+    <ResponsiveModal isOpen={isOpen} onClose={onReset} className="max-w-md" preventOutsideClick={step < 5}>
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           {step > 1 && step < 5 && (
-            <button onClick={onBack} className="flex items-center text-sm text-gray-600 hover:text-gray-800">
+            <button onClick={onBack} className="flex items-center text-sm text-gray-600">
               <ArrowLeft className="w-4 h-4 mr-1" />
             </button>
           )}
           <div className="flex-1 text-center">
-            <h2 className="text-lg font-medium text-gray-900">{getStepTitle()}</h2>
+            <h2 className="text-lg font-medium">{getStepTitle()}</h2>
           </div>
           <div className="w-6" />
         </div>
 
-        {/* Step Progress Bar */}
-        <div className="flex justify-center">
-          <div className="flex items-center gap-2">
-            <div className={`w-6 h-1 ${step >= 1 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
-            <div className={`w-6 h-1 ${step >= 2 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
-            <div className={`w-6 h-1 ${step >= 3 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
-            <div className={`w-6 h-1 ${step >= 4 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
-            <div className={`w-6 h-1 ${step >= 5 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
-          </div>
+        <div className="flex justify-center gap-2">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className={`w-6 h-1 ${step >= i ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
+          ))}
         </div>
 
-        {/* Step Contents */}
         <div className="space-y-4">
           {step === 1 && (
             <>
-              {/* Bank Selection */}
               <div className="space-y-2">
-                <select
-                  value={watchedValues.bankName || ""}
-                  onChange={handleBankChange}
-                  className="w-full h-10 border border-gray-300 rounded-md px-3 focus:border-cyan-400 focus:ring-cyan-400 bg-white"
-                >
-                  <option value="">Select Bank</option>
-                  {banks.map((bank) => (
-                    <option key={bank.value} value={bank.value}>
-                      {bank.label}
-                    </option>
-                  ))}
-                </select>
-                <FormError message={errors.bankName?.message} />
+                {isLoadingBanks ? (
+                  <div className="h-10 bg-gray-100 rounded-md animate-pulse" />
+                ) : (
+                  <>
+                    <select
+                      {...register("bankCode")}
+                      onChange={handleBankChange}
+                      className="w-full h-10 border rounded-md px-3 bg-white"
+                      disabled={isLoadingBanks}
+                    >
+                      <option value="">Select Bank</option>
+                      {banks.map((bank) => (
+                        <option key={bank.id} value={bank.code}>
+                          {bank.name} ({bank.code})
+                        </option>
+                      ))}
+                    </select>
+                    <FormError message={errors.bankCode?.message || bankError} />
+                  </>
+                )}
               </div>
 
-              {/* Account Number */}
               <div className="space-y-2">
                 <Input
-                  placeholder="Account Number (10 digits)"
-                  value={watchedValues.accountNumber || ""}
+                  placeholder="Account Number"
+                  {...register("accountNumber")}
                   onChange={handleAccountNumberChange}
                   maxLength={10}
                   inputMode="numeric"
-                  className="bg-white border-gray-300"
                 />
                 <FormError message={errors.accountNumber?.message} />
               </div>
 
-              {/* Account Name Verification */}
-              <div className="p-3 bg-white border border-gray-200 rounded-md min-h-[40px] flex items-center">
+              <div className="p-3 bg-gray-50 rounded-md min-h-[40px]">
                 {isVerifying ? (
                   <span className="text-gray-500">Verifying account...</span>
                 ) : accountName ? (
                   <span className="text-green-600 font-medium">{accountName}</span>
                 ) : (
-                  <span className="text-gray-400">Account name will appear here</span>
+                  <span className="text-gray-500">Enter account details to verify</span>
                 )}
               </div>
             </>
@@ -361,163 +433,199 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
 
           {step === 2 && (
             <>
-              {/* Amount */}
-              <div className="relative">
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₦</span>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  className="pl-8 bg-white border-gray-300"
-                  {...register("amount", { valueAsNumber: true })}
-                />
+              <div className="space-y-2">
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₦</span>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    className="pl-8 bg-white border-gray-300"
+                    {...register("amount", { valueAsNumber: true })}
+                  />
+                </div>
+                <FormError message={errors.amount?.message} />
               </div>
-              <FormError message={errors.amount?.message} />
 
-              {/* Description */}
-              <Input
-                placeholder="Description (Optional)"
-                className="bg-white border-gray-300"
-                {...register("description")}
-              />
+              <div className="space-y-2">
+                <Input
+                  placeholder="Description (Optional)"
+                  className="bg-white border-gray-300"
+                  {...register("description")}
+                />
+                <FormError message={errors.description?.message} />
+              </div>
 
-              {/* Balance Info */}
               <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                 <div className="flex justify-between text-sm">
                   <span>Available Balance:</span>
-                  <span className="font-semibold">₦25,000.00</span>
+                  <span className="font-semibold">Check your wallet</span>
                 </div>
               </div>
             </>
           )}
 
           {step === 3 && (
-            <>
-              {/* Transfer Summary */}
-              <div className="space-y-4">
-                <div className="p-4 bg-white rounded-lg border border-gray-200 space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Recipient:</span>
-                    <span className="font-medium">{accountName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Bank:</span>
-                    <span className="font-medium">{banks.find((b) => b.value === watchedValues.bankName)?.label}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Account Number:</span>
-                    <span className="font-medium">{watchedValues.accountNumber}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Amount:</span>
-                    <span className="font-medium text-lg">₦{Number(watchedValues.amount || 0).toLocaleString()}</span>
-                  </div>
-                  {watchedValues.description && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Description:</span>
-                      <span className="font-medium">{watchedValues.description}</span>
-                    </div>
-                  )}
+            <div className="space-y-4">
+              <div className="p-4 bg-gray-50 rounded-md">
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Recipient</span>
+                  <span className="font-medium">{accountName}</span>
                 </div>
-
-                {/* Save Beneficiary */}
-                <div className="space-y-3">
-                  <div className="flex bg-white p-3 rounded-lg border border-gray-200 items-center justify-between">
-                    <span>Save to Beneficiaries?</span>
-                    <Switch checked={saveBeneficiary} onCheckedChange={setSaveBeneficiary} />
-                  </div>
-
-                  {saveBeneficiary && (
-                    <Input
-                      placeholder="Beneficiary Name"
-                      value={beneficiaryName}
-                      onChange={(e) => setBeneficiaryName(e.target.value)}
-                      className="bg-white border-gray-300"
-                    />
-                  )}
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Account Number</span>
+                  <span className="font-medium">{watch("accountNumber")}</span>
                 </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Bank</span>
+                  <span className="font-medium">{banks.find((b) => b.code === watch("bankCode"))?.name || "N/A"}</span>
+                </div>
+                <div className="flex justify-between py-2 border-b">
+                  <span className="text-gray-600">Amount</span>
+                  <span className="font-medium">₦{watch("amount")?.toLocaleString()}</span>
+                </div>
+                {watch("description") && (
+                  <div className="flex justify-between py-2">
+                    <span className="text-gray-600">Description</span>
+                    <span className="font-medium">{watch("description")}</span>
+                  </div>
+                )}
               </div>
-            </>
+
+              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                <div>
+                  <p className="text-sm font-medium">Save as beneficiary</p>
+                  <p className="text-xs text-gray-500">Save for faster transfers next time</p>
+                </div>
+                <Switch checked={saveBeneficiary} onCheckedChange={setSaveBeneficiary} />
+              </div>
+
+              {saveBeneficiary && (
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Beneficiary name (e.g. John Doe)"
+                    value={beneficiaryName}
+                    onChange={(e) => setBeneficiaryName(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
           )}
 
           {step === 4 && (
-            <>
-              <div className="text-center mb-4">
-                <p className="text-gray-600">Enter your 4-digit PIN to confirm this transfer</p>
-              </div>
-
-              <div className="space-y-4">
+            <div className="space-y-6">
+              <div className="text-center">
+                <p className="text-gray-600 mb-4">Enter your 4-digit PIN to confirm</p>
                 {renderPinInput()}
                 <FormError message={errors.pin?.message} />
               </div>
 
-              {/* Transfer Summary (Compact) */}
-              <div className="p-3 bg-white rounded-lg border border-gray-200">
-                <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Sending:</span>
-                  <span className="font-semibold text-lg">₦{Number(watchedValues.amount || 0).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-gray-600">To:</span>
-                  <span className="font-medium">{accountName}</span>
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex justify-between text-sm">
+                  <span>Transfer Amount:</span>
+                  <span className="font-semibold">₦{watch("amount")?.toLocaleString()}</span>
                 </div>
               </div>
-            </>
+              {errors.root && (
+                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-600 text-center">
+                  {errors.root.message}
+                </div>
+              )}
+            </div>
           )}
 
           {step === 5 && (
-            <div className="text-center space-y-4">
-              {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="w-10 h-10 text-green-500" />
-              </div>
+            <div className="text-center space-y-4 py-8">
+              {/* Success State */}
+              {transactionStatus === "delivered" && (
+                <>
+                  <CheckCircle className="w-16 h-16 text-green-500 mx-auto" />
+                  <h3 className="text-xl font-semibold text-green-600">Transfer Successful</h3>
+                  <p className="text-gray-600">
+                    ₦{watch("amount")?.toLocaleString()} has been sent to {accountName}
+                  </p>
+                </>
+              )}
 
-              <div>
-                <p className="text-green-600 text-lg font-bold">Transfer Successful!</p>
-                <p className="text-gray-600">Your money has been sent successfully.</p>
-              </div>
+              {/* Failed State */}
+              {transactionStatus === "failed" && (
+                <>
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                    <X className="w-8 h-8 text-red-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-red-600">Transfer Failed</h3>
+                  <p className="text-gray-600">
+                    Your transfer of ₦{watch("amount")?.toLocaleString()} to {accountName} could not be completed.
+                  </p>
+                  <p className="text-sm text-red-500">Please try again or contact support if the problem persists.</p>
+                </>
+              )}
+
+              {/* Pending State */}
+              {transactionStatus === "pending" && (
+                <>
+                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+                    <Clock className="w-8 h-8 text-yellow-500" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-yellow-600">Transfer Pending</h3>
+                  <p className="text-gray-600">
+                    Your transfer of ₦{watch("amount")?.toLocaleString()} to {accountName} is being processed.
+                  </p>
+                  <p className="text-sm text-yellow-600">
+                    You will receive a notification once the transaction is complete.
+                  </p>
+                </>
+              )}
 
               {/* Transaction Details */}
-              <div className="bg-white rounded-lg p-4 space-y-2 text-sm border border-gray-200">
-                <div className="flex justify-between">
-                  <span>Amount:</span>
-                  <span className="font-semibold">₦{Number(watchedValues.amount || 0).toLocaleString()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>To:</span>
-                  <span>{accountName}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Transaction ID:</span>
-                  <span>#SKX{Date.now()}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Time:</span>
-                  <span>{new Date().toLocaleString()}</span>
+              <div className="p-3 bg-gray-50 rounded-md text-sm">
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span>Recipient:</span>
+                    <span className="font-medium">{accountName}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Account Number:</span>
+                    <span className="font-medium">{watch("accountNumber")}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Bank:</span>
+                    <span className="font-medium">
+                      {banks.find((b) => b.code === watch("bankCode"))?.name || "N/A"}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Amount:</span>
+                    <span className="font-medium">₦{watch("amount")?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Transaction Reference:</span>
+                    <span className="font-medium">{transactionId || "Processing..."}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Time:</span>
+                    <span>{new Date().toLocaleString()}</span>
+                  </div>
                 </div>
               </div>
             </div>
           )}
         </div>
 
-        {/* Buttons */}
         <div className="mt-6">
-          {step < 5 ? (
+          {step === 5 ? (
+            <Button onClick={onReset} className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6]">
+              {transactionStatus === "failed" ? "Try Again" : "Done"}
+            </Button>
+          ) : (
             <Button
               onClick={step === 3 ? onConfirm : step === 4 ? onSubmit : onNext}
-              className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6] text-white py-3 rounded-lg font-medium"
+              className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6]"
               disabled={
                 (step === 1 && (!accountName || isVerifying)) ||
                 (step === 4 && (isProcessing || pinDigits.join("").length !== 4))
               }
             >
               {step === 3 ? "Confirm" : step === 4 ? (isProcessing ? "Processing..." : "Send Money") : "Continue"}
-            </Button>
-          ) : (
-            <Button
-              onClick={onReset}
-              className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6] text-white py-3 rounded-lg font-medium"
-            >
-              Done
             </Button>
           )}
         </div>

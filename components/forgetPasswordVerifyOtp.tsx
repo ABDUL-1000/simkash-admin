@@ -132,7 +132,7 @@ export default function VerifyOTPForgotPasswordPage() {
         setErrors({ general: response.message || "Invalid OTP. Please try again." })
       }
     } catch (error) {
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
     } finally {
       setIsLoading(false)
     }
@@ -161,7 +161,7 @@ export default function VerifyOTPForgotPasswordPage() {
         setErrors({ general: response.message || "Failed to resend OTP" })
       }
     } catch (error) {
-      setErrors({ general: "Failed to resend OTP. Please try again." })
+      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
     } finally {
       setIsResending(false)
     }

@@ -67,8 +67,8 @@ export default function ForgotPasswordPage() {
       } else {
         setErrors({ general: response.message || "Failed to send reset code" })
       }
-    } catch (error) {
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+    }catch (error) {
+      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
     } finally {
       setIsLoading(false)
     }

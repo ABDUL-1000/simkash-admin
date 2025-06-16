@@ -4,10 +4,11 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import { Home, Wallet, CreditCard, ReceiptText, LifeBuoy, Settings, Menu, X, LogOut } from "lucide-react"
+import {  Wallet, CreditCard, ReceiptText, LifeBuoy, Settings, Menu, X, LogOut, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { AuthAPI } from "@/lib/API/api"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 
 
 interface SidebarProps {
@@ -23,7 +24,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
     {
       name: "Dashboard",
       path: "/dashboard",
-      icon: <Home className="h-5 w-5" />,
+      icon: <Image src="/homeIcon.png" alt="logo" width={30} height={30} className="h-5 w-5" />,
     },
     {
       name: "My Wallet",
@@ -134,19 +135,64 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
           <div className="mt-4 px-3">
             <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200">
-                  <span className="text-sm font-medium text-gray-600">
-                    {username
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")
-                      .toUpperCase()}
-                  </span>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{username}</span>
-                  <span className="text-xs text-gray-500">{email}</span>
-                </div>
+                
+              <div className=" lg:block">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="rounded-full">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                    <span className="text-sm font-medium text-gray-600">
+                      {username
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")
+                        .toUpperCase()}
+                    </span>
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2  ">
+                <DropdownMenuLabel>
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium">{username}</p>
+                    <p className="text-xs text-muted-foreground">{email}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem asChild>
+                  <Link href="/dashboard" className="flex w-full cursor-pointer items-center">
+                    <LayoutDashboard className="mr-2 h-4 w-4" />
+                    <h1 className="text-sm">
+
+                    Dashboard
+                    </h1>
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/wallet" className="flex w-full cursor-pointer items-center">
+                    <Wallet className="mr-2 h-4 w-4" />
+                    My Wallet
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link href="/settings" className="flex w-full cursor-pointer items-center">
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  Logout
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
               </div>
               <Button
                 variant="ghost"

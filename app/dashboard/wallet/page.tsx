@@ -6,7 +6,7 @@ import TopUPModal from "@/components/modals/topUpModal";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowBigDown, ArrowDownIcon, X } from "lucide-react";
+import {  X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -159,7 +159,7 @@ export default function WalletPage() {
               </div>
               <div className=" flex lg:hidden md:hidden justify-center items-center mt-6 w-full gap-8">
                 {quickActions.map((action, index) => (
-                  <div className="flex items-center flex-col justify-center">
+                  <div key={index} className="flex items-center flex-col justify-center">
                     <Button
                       key={index}
                       onClick={action.onClick}

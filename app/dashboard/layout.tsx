@@ -4,9 +4,7 @@ import type React from "react";
 import "@/app/globals.css";
 import { Inter } from "next/font/google";
 
-import { Toaster } from "sonner";
-import Sidebar from "@/components/layout/sidebar";
-// import Header from "@/components/layout/header";
+import { Toaster } from "sonner";// import Header from "@/components/layout/header";
 
 const inter = Inter({ subsets: ["latin"] });
 

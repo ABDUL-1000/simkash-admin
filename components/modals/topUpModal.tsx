@@ -1,13 +1,13 @@
 "use client"
 
-import type React from "react"
-
+import React, { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
 import AccountDetails from "../AccountDetails"
 import { ResponsiveModal } from "../mobileDrawer"
+import { AuthAPI } from "@/lib/API/api"
+
 
 interface TopUPModalProps {
   open: boolean
@@ -15,6 +15,46 @@ interface TopUPModalProps {
 }
 
 const TopUPModal: React.FC<TopUPModalProps> = ({ open, onClose }) => {
+  const [amount, setAmount] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState("")
+
+  const handlePayment = async () => {
+    // Validate amount
+    const paymentAmount = parseFloat(amount)
+    if (isNaN(paymentAmount)) {
+      setError("Please enter a valid amount")
+      return
+    }
+    if (paymentAmount <= 0) {
+      setError("Amount must be greater than 0")
+      return
+    }
+
+    setLoading(true)
+    setError("")
+
+    try {
+      const response = await AuthAPI.initiatePayment(paymentAmount)
+      
+      if (response.success) {
+        // Redirect to Paystack payment page
+        if (response.data?.authorization_url) {
+          window.location.href = response.data.authorization_url
+        } else {
+          setError("Payment link not received")
+        }
+      } else {
+        setError(response.message || "Failed to initiate payment")
+      }
+    } catch (err) {
+      setError("An unexpected error occurred")
+      console.error("Payment error:", err)
+    } finally {
+      // setLoading(false)
+    }
+  }
+
   return (
     <ResponsiveModal isOpen={open} onClose={onClose} className="max-w-md bg-gray-50 border-0">
       <div className="space-y-6">
@@ -47,16 +87,24 @@ const TopUPModal: React.FC<TopUPModalProps> = ({ open, onClose }) => {
                   id="amount"
                   type="number"
                   placeholder="Enter amount"
-                  className="pl-8 p-3 border-gray-300 bg-white"
+                  className="pl-8 border-gray-300 bg-white"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  disabled={loading}
                 />
               </div>
+              {error && (
+                <p className="text-sm text-red-500">{error}</p>
+              )}
             </div>
 
             <Button
               type="button"
               className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6] text-white py-3 rounded-lg font-medium"
+              onClick={handlePayment}
+              disabled={loading}
             >
-              Top Up
+              {loading ? "Processing..." : "Top Up"}
             </Button>
           </div>
         </div>

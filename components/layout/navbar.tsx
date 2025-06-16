@@ -3,17 +3,10 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Bell, Search, LogOut, LayoutDashboard, Settings, Wallet } from "lucide-react"
+import { Bell, Search} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+
 import { AuthAPI } from "@/lib/API/api"
 
 interface NavbarProps {
@@ -33,9 +26,7 @@ export function Navbar({ username = "Yusuf", email = "yusufababa50@gmail.com" }:
     greeting = "Good Evening"
   }
 
-  const handleLogout = async () => {
-    await AuthAPI.logout()
-  }
+
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -74,60 +65,7 @@ export function Navbar({ username = "Yusuf", email = "yusufababa50@gmail.com" }:
           </Button>
 
           {/* User Dropdown - Only visible on desktop */}
-          <div className="hidden lg:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                    <span className="text-sm font-medium text-gray-600">
-                      {username
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </span>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{username}</p>
-                    <p className="text-xs text-muted-foreground">{email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="flex w-full cursor-pointer items-center">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    Dashboard
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <Link href="/wallet" className="flex w-full cursor-pointer items-center">
-                    <Wallet className="mr-2 h-4 w-4" />
-                    My Wallet
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex w-full cursor-pointer items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          
         </div>
       </div>
     </header>

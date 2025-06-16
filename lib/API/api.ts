@@ -1,12 +1,21 @@
+import { AirtimeRequest, DataPlansResponse, DataRequest } from "../type"
+
 interface SignupRequest {
   email: string
   password: string
   confirm_password: string
 }
+interface AirtimeVerify {
+  phone: string
+}
 
 interface LoginRequest {
   email: string
   password: string
+}
+ interface VerifyAccountRequest {
+  account_number: string;
+  bank_code: string;
 }
 
 interface ProfileUpdateRequest {
@@ -17,12 +26,20 @@ interface ProfileUpdateRequest {
   pin: number // Include pin in the profile update
 }
 
-interface ApiResponse {
+ interface ApiResponse {
   success: boolean
   message?: string
   data?: any
+  responseBody?: any
+  responseMessage?: string
+  
 }
 
+
+interface VerifypaymentRequest {
+ 
+  reference: string
+}
 interface VerifyOTPRequest {
   email: string
   otp: string
@@ -39,6 +56,16 @@ interface ForgotPasswordRequest {
 interface CreateNewPasswordRequest {
   new_password: string
   confirm_password: string
+}
+interface TransferRequest  {
+  amount: number;
+  account_number: string;
+  bank_code: string;
+  pin:  number;
+  narration?: string;
+  message?: string
+  responseBody?: any
+  responseMessage?: string
 }
 
 export class AuthAPI {
@@ -189,6 +216,48 @@ export class AuthAPI {
     }
   }
 
+  static async verifyPayment(refrence:VerifypaymentRequest): Promise<ApiResponse> {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/payment/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+            Authorization: `Bearer ${this.getAccessToken()}`,   
+        },
+        body: JSON.stringify(refrence),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.responseMessage || result.message || "Network error occurred")
+      }
+
+      if (!result.responseSuccessful) {
+        return {
+          success: false,
+          message: result.responseMessage ,
+        }
+      }
+
+      if (result.responseBody && result.responseBody.accessToken) {
+        const { accessToken } = result.responseBody
+        this.setAccessToken(accessToken)
+       
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "OTP verified successfully",
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
   static async verifyOTP(data: VerifyOTPRequest): Promise<ApiResponse> {
     try {
       const response = await fetch(`${this.baseUrl}/api/v1/auth/verify-otp`, {
@@ -469,6 +538,8 @@ export class AuthAPI {
     }
   }
 
+  
+
   static async authenticatedRequest(url: string, options: RequestInit = {}): Promise<Response> {
     const token = this.getAccessToken()
 
@@ -519,7 +590,441 @@ export class AuthAPI {
       }
     }
   }
+  static async buyData(data: DataRequest): Promise<ApiResponse> {
+    try {
+      console.log("API received data:", data)
 
+      // Validate input data
+      if (!data.serviceID) {
+        throw new Error("Service ID is required")
+      }
+
+      if (!data.billersCode) {
+        throw new Error("Billers code is required")
+      }
+
+      if (!data.variation_code) {
+        throw new Error("Variation code is required")
+      }
+
+      if (data.amount === null || data.amount === undefined || data.amount <= 0) {
+        throw new Error("Amount must be a positive number")
+      }
+
+      if (!data.phone) {
+        throw new Error("Phone number is required")
+      }
+
+      if (data.pin === null || data.pin === undefined) {
+        throw new Error("PIN is required")
+      }
+
+      const pin = typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin
+      if (isNaN(pin) || pin.toString().length !== 4) {
+        throw new Error("PIN must be 4 digits")
+      }
+
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          responseMessage: "Authentication token is required",
+        }
+      }
+
+      // Convert phone to number for the API
+      const phoneNumber = typeof data.phone === "string" ? Number.parseInt(data.phone) : data.phone
+
+      const payload = {
+        serviceID: data.serviceID,
+        billersCode: data.billersCode, // This will be the phone number as string
+        variation_code: data.variation_code,
+        amount: data.amount,
+        phone: phoneNumber,
+        pin: pin,
+      }
+
+      console.log("Sending payload:", payload)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/data/purchase`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      console.log("API Response Status:", response.status)
+      console.log("API Response Body:", result)
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          const errorMessage = result.responseMessage || result.error || "Invalid request data"
+          console.error("400 Bad Request Details:", result)
+          throw new Error(errorMessage)
+        }
+        throw new Error(result.responseMessage || "Data purchase failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Data purchase successful",
+      }
+    } catch (error) {
+      console.error("Data purchase error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Data purchase failed",
+      }
+    }
+  }
+    static async getDataPlans(serviceID: string): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/data/plans?serviceID=${serviceID}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result: DataPlansResponse = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.responseMessage || "Failed to fetch data plans")
+      }
+
+      return {
+        success: true,
+        data: result,
+        message: result.responseMessage || "Data plans fetched successfully",
+      }
+    } catch (error) {
+      console.error("Data plans fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to fetch data plans",
+      }
+    }
+  }
+
+
+static async buyAirtime(data: AirtimeRequest): Promise<ApiResponse> {
+    try {
+      console.log("API received data:", data)
+
+      // 1. Validate input data before sending
+      if (data.amount === null || data.amount === undefined) {
+        throw new Error("Amount is required")
+      }
+
+      // Convert to number if it's a string
+      const amount = typeof data.amount === "string" ? Number.parseFloat(data.amount) : data.amount
+
+      if (isNaN(amount)) {
+        throw new Error("Amount must be a valid number")
+      }
+
+      if (amount <= 0) {
+        throw new Error("Amount must be positive")
+      }
+
+      // Additional validation for required fields
+      if (!data.phone
+      ) {
+        throw new Error("Account number is required")
+      }
+      if (!data.network) {
+        throw new Error("Bank code is required")
+      }
+      if (data.pin === null || data.pin === undefined) {
+        throw new Error("PIN is required")
+      }
+
+      const pin = typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin
+      if (isNaN(pin) || pin.toString().length !== 4) {
+        throw new Error("PIN must be 4 digits")
+      }
+
+     
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          responseMessage: "Authentication token is required",
+        }
+      }
+
+      
+      const payload = {
+        amount: amount,
+        phone: data.phone,
+       network: data.network,
+        pin: pin,
+      }
+
+      console.log("Sending payload:", payload)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/airtime/purchase`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      console.log("API Response Status:", response.status)
+      console.log("API Response Body:", result)
+  
+
+      if (!response.ok) {
+       
+
+        if (response.status === 400) {
+          const errorMessage = result.responseMessage || result.error || "Invalid request data"
+          console.error("400 Bad Request Details:", result)
+          throw new Error(errorMessage)
+        }
+
+        throw new Error(result.responseMessage || "Payment failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Airtime purchase successful",
+      }
+    } catch (error) {
+      console.error("Payment error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Airtime purchase failed",
+      }
+    }
+  }
+static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
+    try {
+      console.log("API received data:", data)
+
+      // 1. Validate input data before sending
+      if (data.amount === null || data.amount === undefined) {
+        throw new Error("Amount is required")
+      }
+
+      // Convert to number if it's a string
+      const amount = typeof data.amount === "string" ? Number.parseFloat(data.amount) : data.amount
+
+      if (isNaN(amount)) {
+        throw new Error("Amount must be a valid number")
+      }
+
+      if (amount <= 0) {
+        throw new Error("Amount must be positive")
+      }
+
+      // Additional validation for required fields
+      if (!data.account_number) {
+        throw new Error("Account number is required")
+      }
+      if (!data.bank_code) {
+        throw new Error("Bank code is required")
+      }
+      if (data.pin === null || data.pin === undefined) {
+        throw new Error("PIN is required")
+      }
+
+      // Convert PIN to number and validate
+      const pin = typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin
+      if (isNaN(pin) || pin.toString().length !== 4) {
+        throw new Error("PIN must be 4 digits")
+      }
+
+      // 2. Get and verify token
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          responseMessage: "Authentication token is required",
+        }
+      }
+
+      // 3. Prepare the payload with type safety
+      const payload = {
+        amount: amount,
+        account_number: data.account_number,
+        bank_code: data.bank_code,
+        pin: pin, // Send as number
+        ...(data.narration && { narration: data.narration }),
+      }
+
+      console.log("Sending payload:", payload)
+
+      // 4. Make the API call
+      const response = await fetch(`${this.baseUrl}/api/v1/payment/transfer`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      // 5. Handle response
+      const result = await response.json()
+
+      console.log("API Response Status:", response.status)
+      console.log("API Response Body:", result)
+
+      if (!response.ok) {
+       
+
+        // For 400 errors, provide more specific error information
+        if (response.status === 400) {
+          const errorMessage = result.responseMessage || result.error || "Invalid request data"
+          console.error("400 Bad Request Details:", result)
+          throw new Error(errorMessage)
+        }
+
+        throw new Error(result.responseMessage || "Payment failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Payment successful",
+      }
+    } catch (error) {
+      console.error("Payment error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Payment failed",
+      }
+    }
+  }
+  static async initiatePayment(amount: number): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required. Please log in again.",
+      };
+    }
+
+    console.log("Initiating payment...");
+    
+    const response = await fetch(`${this.baseUrl}/api/v1/payment/deposit`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ amount, callback_url: "http://localhost:3002/successpage" }),
+    });
+
+    const result = await response.json();
+    console.log("Payment response:", result);
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAccessToken();
+        return {
+          success: false,
+          message: "Session expired. Please log in again.",
+        };
+      }
+      throw new Error(result.responseMessage || result.message || "Failed to initiate payment");
+    }
+
+    if (!result.responseSuccessful) {
+      return {
+        success: false,
+        message: result.responseMessage || "Failed to initiate payment",
+      };
+    }
+
+    return {
+      success: true,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Payment initiated successfully",
+    };
+  } catch (error) {
+    console.error("Payment initiation error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+}
+// static async sendMoney(data: {
+//   amount: number;
+//   account_number: string;
+//   bank_code: string;
+//   pin: string | number;
+//   narration?: string;
+// }): Promise<ApiResponse> {
+//   try {
+//     const token = this.getAccessToken();
+
+//     // Ensure all fields are included in the payload
+//     const payload = {
+//       amount: data.amount,
+//       account_number: data.account_number,
+//       bank_code: data.bank_code,
+//       pin: typeof data.pin === 'string' ? parseInt(data.pin, 10) : data.pin,
+//       ...(data.narration && { narration: data.narration }) // Only include if exists
+//     };
+
+//     console.log('Sending payload:', payload); // Debug log
+
+//     const response = await fetch(`${this.baseUrl}/api/v1/payment/transfer`, {
+//       method: "POST",
+//       headers: {
+//         "Content-Type": "application/json",
+//         ...(token && { Authorization: `Bearer ${token}` }),
+//       },
+//       body: JSON.stringify(payload),
+//     });
+
+//     const result = await response.json();
+
+//     if (!response.ok) {
+//       console.error('API Error:', result); // Log detailed error
+//       return {
+//         success: false,
+//         message: result.message || result.responseMessage || "Transfer failed",
+      
+//       };
+//     }
+
+//     return {
+//       success: true,
+//       data: result.data || result.responseBody,
+//       message: result.message || result.responseMessage || "Transfer successful",
+//     };
+//   } catch (error) {
+//     console.error('Network Error:', error); // Log network errors
+//     return {
+//       success: false,
+//       message: error instanceof Error ? error.message : "Network error occurred",
+//     };
+//   }
+// }
   static async createNewPassword(data: CreateNewPasswordRequest): Promise<ApiResponse> {
     try {
       const token = this.getAccessToken()
@@ -584,4 +1089,244 @@ export class AuthAPI {
       }
     }
   }
+
+  static async getNetworkList(): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching dashboard data...")
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/airtime/network`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("Dashboard response:", result)
+      
+
+      if (!response.ok) {
+     
+        throw new Error(result.responseMessage || result.message || "Failed to fetch banks list")
+      }
+
+     
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        
+      }
+    } catch (error) {
+      console.error("Dashboard fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+  static async getBanksList(): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching dashboard data...")
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/payment/banks`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("Dashboard response:", result)
+      
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Failed to fetch banks list")
+      }
+
+     
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        
+      }
+    } catch (error) {
+      console.error("Dashboard fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+  static async getDashboardData(): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching dashboard data...")
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/user/dashboard`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("Dashboard response:", result)
+      console.log("Dashboard user details:", result.responseBody.wallet.balance)
+      
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Failed to fetch dashboard data")
+      }
+
+      if (!result.responseSuccessful) {
+        return {
+          success: false,
+          message: result.responseMessage || "Failed to fetch dashboard data",
+        }
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Dashboard data fetched successfully",
+      }
+    } catch (error) {
+      console.error("Dashboard fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+ 
+
+static async verifyAccount(data: VerifyAccountRequest): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required",
+      };
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/v1/payment/verify-account`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAccessToken();
+        return {
+          success: false,
+          message: "Session expired. Please login again.",
+        };
+      }
+      throw new Error(result.responseMessage || result.message || "Account verification failed");
+    }
+
+    return {
+      success: result.responseSuccessful !== false,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Account verified successfully",
+    };
+  } catch (error) {
+    console.error("Account verification error:", error);
+    console.log("Error response:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+}
+static async verifyAirtimeNumber(phoneNumer: AirtimeVerify): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required",
+      };
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/v1/billpayment/airtime/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(phoneNumer), 
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Verification failed");
+    }
+
+    const result = await response.json();
+    return {
+      success: true,
+      data: result,
+      message: result.message || "Verification successful",
+    };
+  } catch (error) {
+    console.error("Verification error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+} 
 }

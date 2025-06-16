@@ -30,6 +30,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
   const [errors, setErrors] = useState<FormErrors>({})
   const [isLoading, setIsLoading] = useState(false)
+
   const [successMessage, setSuccessMessage] = useState("")
 
   const router = useRouter()
@@ -68,7 +69,6 @@ export default function LoginPage() {
 
   const handleSignIn = async () => {
     if (!validateForm()) return
-
     setIsLoading(true)
     setErrors({})
     setSuccessMessage("")
@@ -79,17 +79,24 @@ export default function LoginPage() {
         password: formData.password,
       })
 
-      if (response.success) {
-        setSuccessMessage("Login successful! Redirecting...")
-        // Redirect to dashboard or home page
-        setTimeout(() => {
-          router.push("/dashboard") // Change this to your desired redirect page
-        }, 1500)
-      } else {
-        setErrors({ general: response.message || "Login failed" })
-      }
-    } catch (error) {
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+   if (response.success && response.data.phone == null) {
+  
+  console.log("Profile data:", response.data.phone)
+  
+  
+  
+  setTimeout(() => {
+    router.push('profilesetting')
+  }, 1500)
+} else if (response.success && response.data.phone !== null) {
+  
+  
+  setSuccessMessage("Login successful! Redirecting...")
+  setTimeout(() => {
+    router.push("/dashboard")
+  }, 1500)
+}    }catch (error) {
+      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
     } finally {
       setIsLoading(false)
     }

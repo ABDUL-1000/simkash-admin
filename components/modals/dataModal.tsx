@@ -2,17 +2,17 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ArrowLeft, CheckCircle, ChevronDown } from "lucide-react"
+import { ArrowLeft, CheckCircle, X, Clock } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Switch } from "../ui/switch"
 import { ResponsiveModal } from "../mobileDrawer"
 import { FormError } from "../formError"
-
+import { AuthAPI } from "@/lib/API/api" // Adjust path as needed
 
 interface DataModalProps {
   isOpen: boolean
@@ -32,40 +32,21 @@ type DataForm = z.infer<typeof dataSchema>
 const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState(1)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [selectedPrevious, setSelectedPrevious] = useState("")
-  const [showPreviousDropdown, setShowPreviousDropdown] = useState(false)
+  const [selectedPlan, setSelectedPlan] = useState<any>(null)
+  const [dataPlans, setDataPlans] = useState<any[]>([])
+  const [isLoadingPlans, setIsLoadingPlans] = useState(false)
+  const [planError, setPlanError] = useState("")
+  const [apiError, setApiError] = useState("")
   const [saveBeneficiary, setSaveBeneficiary] = useState(false)
   const [beneficiaryName, setBeneficiaryName] = useState("")
-  const [selectedPlan, setSelectedPlan] = useState<any>(null)
+  const [transactionStatus, setTransactionStatus] = useState<"delivered" | "failed" | "pending" | null>(null)
+  const [transactionId, setTransactionId] = useState<string>("")
 
   // Store PIN digits as array of strings
   const [pinDigits, setPinDigits] = useState<string[]>(["", "", "", ""])
 
   // PIN input refs
   const pinRefs = useRef<(HTMLInputElement | null)[]>([])
-
-  // Mock previous numbers
-  const previousNumbers = [
-    { number: "07083175021", network: "MTN" },
-    { number: "08012345678", network: "Airtel" },
-    { number: "09087654321", network: "Glo" },
-  ]
-
-  const networks = [
-    { value: "mtn", label: "MTN", color: "bg-yellow-500" },
-    { value: "airtel", label: "Airtel", color: "bg-red-500" },
-    { value: "glo", label: "Glo", color: "bg-green-500" },
-    { value: "9mobile", label: "9mobile", color: "bg-green-600" },
-  ]
-
-  const dataPlans = [
-    { id: "1", name: "Daily Plan", amount: 100, validity: "1 day", data: "100MB" },
-    { id: "2", name: "Weekly Plan", amount: 500, validity: "7 days", data: "1GB" },
-    { id: "3", name: "Monthly Plan", amount: 1000, validity: "30 days", data: "3GB" },
-    { id: "4", name: "Monthly Plan", amount: 2000, validity: "30 days", data: "5GB" },
-    { id: "5", name: "Monthly Plan", amount: 3000, validity: "30 days", data: "10GB" },
-    { id: "6", name: "Monthly Plan", amount: 5000, validity: "30 days", data: "20GB" },
-  ]
 
   const {
     register,
@@ -87,53 +68,53 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
 
   const watchedValues = watch()
 
+  const networks = [
+    { value: "mtn", label: "MTN", color: "bg-yellow-500", serviceID: "mtn-data" },
+    { value: "airtel", label: "Airtel", color: "bg-red-500", serviceID: "airtel-data" },
+    { value: "glo", label: "Glo", color: "bg-green-500", serviceID: "glo-data" },
+    { value: "9mobile", label: "9mobile", color: "bg-green-600", serviceID: "9mobile-data" },
+  ]
+
+  useEffect(() => {
+    const fetchDataPlans = async () => {
+      const selectedNetwork = watchedValues.network
+      if (!selectedNetwork) return
+
+      const network = networks.find((n) => n.value === selectedNetwork)
+      if (!network) return
+
+      setIsLoadingPlans(true)
+      setPlanError("")
+      setDataPlans([])
+
+      try {
+        const response = await AuthAPI.getDataPlans(network.serviceID)
+        if (response.success && response.data?.responseBody?.variations) {
+          setDataPlans(response.data.responseBody.variations)
+        } else {
+          setPlanError(response.message || "Failed to load data plans")
+        }
+      } catch (error) {
+        setPlanError("Network error occurred")
+        console.error("Failed to fetch data plans:", error)
+      } finally {
+        setIsLoadingPlans(false)
+      }
+    }
+
+    if (step >= 2) {
+      fetchDataPlans()
+    }
+  }, [watchedValues.network, step])
+
   const handlePhoneNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, "").slice(0, 11)
     setValue("phoneNumber", value)
-    setSelectedPrevious("")
-
-    // Auto-detect network based on prefix
-    if (value.length >= 4) {
-      const prefix = value.substring(0, 4)
-      if (
-        ["0803", "0806", "0703", "0706", "0813", "0816", "0810", "0814", "0903", "0906", "0913", "0916"].includes(
-          prefix,
-        )
-      ) {
-        setValue("network", "mtn")
-      } else if (["0802", "0808", "0812", "0701", "0708", "0902", "0907", "0901", "0904", "0912"].includes(prefix)) {
-        setValue("network", "airtel")
-      } else if (["0805", "0807", "0815", "0705", "0905", "0915"].includes(prefix)) {
-        setValue("network", "glo")
-      } else if (["0809", "0818", "0817", "0909", "0908"].includes(prefix)) {
-        setValue("network", "9mobile")
-      }
-    }
-  }
-
-  const handlePreviousSelect = (number: string) => {
-    setSelectedPrevious(number)
-    setValue("phoneNumber", number)
-    setShowPreviousDropdown(false)
-
-    // Auto-detect network for previous number
-    const prefix = number.substring(0, 4)
-    if (
-      ["0803", "0806", "0703", "0706", "0813", "0816", "0810", "0814", "0903", "0906", "0913", "0916"].includes(prefix)
-    ) {
-      setValue("network", "mtn")
-    } else if (["0802", "0808", "0812", "0701", "0708", "0902", "0907", "0901", "0904", "0912"].includes(prefix)) {
-      setValue("network", "airtel")
-    } else if (["0805", "0807", "0815", "0705", "0905", "0915"].includes(prefix)) {
-      setValue("network", "glo")
-    } else if (["0809", "0818", "0817", "0909", "0908"].includes(prefix)) {
-      setValue("network", "9mobile")
-    }
   }
 
   const handlePlanSelect = (plan: any) => {
     setSelectedPlan(plan)
-    setValue("plan", plan.id)
+    setValue("plan", plan.variation_code) // Use variation_code instead of id
   }
 
   // Handle PIN digit change
@@ -211,6 +192,9 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
       if (!watchedValues.phoneNumber || watchedValues.phoneNumber.length !== 11) {
         return
       }
+      if (!watchedValues.network) {
+        return
+      }
       setStep(2)
       return
     }
@@ -233,13 +217,18 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
   const onReset = () => {
     setStep(1)
     setIsProcessing(false)
-    setSelectedPrevious("")
     setSaveBeneficiary(false)
     setBeneficiaryName("")
     setSelectedPlan(null)
     setPinDigits(["", "", "", ""])
+    setTransactionStatus(null)
+    setTransactionId("")
     reset()
     onClose()
+    setDataPlans([])
+    setIsLoadingPlans(false)
+    setPlanError("")
+    setApiError("")
   }
 
   const onConfirm = () => {
@@ -247,22 +236,76 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
     setStep(4)
   }
 
-  const onSubmit = handleSubmit(() => {
-    setIsProcessing(true)
-    // Simulate processing
-    setTimeout(() => {
-      setStep(5)
-      setIsProcessing(false)
-      if (onSuccess) {
-        onSuccess({
-          ...watchedValues,
-          selectedPlan,
-          saveBeneficiary,
-          beneficiaryName,
-        })
+  const onSubmit = async () => {
+    try {
+      setIsProcessing(true)
+      setApiError("")
+
+      if (!selectedPlan) {
+        setApiError("Please select a data plan")
+        return
       }
-    }, 2000)
-  })
+
+      const pinString = pinDigits.join("")
+      const pinNumber = Number.parseInt(pinString)
+
+      if (isNaN(pinNumber) || pinString.length !== 4) {
+        setApiError("Please enter a valid 4-digit PIN")
+        return
+      }
+
+      const selectedNetwork = networks.find((n) => n.value === watchedValues.network)
+      if (!selectedNetwork) {
+        setApiError("Invalid network selection")
+        return
+      }
+
+      // Prepare the data for the API according to the required format
+      const buyDataPayload = {
+        serviceID: selectedNetwork.serviceID, // e.g., "glo-data"
+        billersCode: watchedValues.phoneNumber, // Phone number as string
+        variation_code: selectedPlan.variation_code, // e.g., "glo100"
+        amount: Number(Number.parseFloat(selectedPlan.variation_amount)), // Convert to number
+        phone: watchedValues.phoneNumber, // Keep as string, not number
+        pin: pinNumber, // PIN as number
+      }
+
+      console.log("Buy Data payload:", buyDataPayload)
+
+      const response = await AuthAPI.buyData(buyDataPayload)
+
+      if (response.success) {
+        // Extract transaction reference and status from response
+        const transactionRef = response.data?.transaction_reference || `DTX${Date.now().toString().slice(-8)}`
+        const status = response.data?.status || "pending"
+
+        console.log("Transaction status from response:", status)
+        console.log("Data purchase response:", response.data)
+
+        setTransactionId(transactionRef)
+        setTransactionStatus(status)
+        setStep(5)
+
+        if (onSuccess) {
+          onSuccess({
+            ...buyDataPayload,
+            transactionId: transactionRef,
+            timestamp: new Date().toISOString(),
+            plan: selectedPlan,
+            beneficiaryName: saveBeneficiary ? beneficiaryName : null,
+            status: status,
+          })
+        }
+      } else {
+        setApiError(response.message || "Data purchase failed")
+      }
+    } catch (error) {
+      console.error("Submit error:", error)
+      setApiError(error instanceof Error ? error.message : "An unexpected error occurred")
+    } finally {
+      setIsProcessing(false)
+    }
+  }
 
   const getStepTitle = () => {
     switch (step) {
@@ -275,6 +318,8 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
       case 4:
         return "Enter PIN"
       case 5:
+        if (transactionStatus === "failed") return "Purchase Failed"
+        if (transactionStatus === "pending") return "Purchase Pending"
         return "Purchase Complete"
       default:
         return "Buy Data"
@@ -317,54 +362,11 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
         <div className="space-y-6 max-h-[70vh] overflow-y-auto pr-1">
           {step === 1 && (
             <>
-              {/* Select from Previous */}
-              <div className="space-y-3">
-                <label className="text-sm font-medium text-gray-700">Select from previous</label>
-                <div className="relative">
-                  <button
-                    type="button"
-                    onClick={() => setShowPreviousDropdown(!showPreviousDropdown)}
-                    className="w-full p-3 text-left border border-gray-300 rounded-lg bg-white flex items-center justify-between hover:border-gray-400 transition-colors"
-                  >
-                    <span className={selectedPrevious ? "text-gray-900" : "text-gray-500"}>
-                      {selectedPrevious || "07083175021"}
-                    </span>
-                    <ChevronDown className="w-4 h-4 text-gray-400" />
-                  </button>
-
-                  {showPreviousDropdown && (
-                    <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10">
-                      {previousNumbers.map((item) => (
-                        <button
-                          key={item.number}
-                          type="button"
-                          onClick={() => handlePreviousSelect(item.number)}
-                          className="w-full p-3 text-left hover:bg-gray-50 flex items-center justify-between"
-                        >
-                          <span>{item.number}</span>
-                          <span className="text-sm text-gray-500">{item.network}</span>
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Or Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-4 bg-gray-50 text-gray-500">Or</span>
-                </div>
-              </div>
-
               {/* Phone Number Input */}
               <div className="space-y-3">
                 <label className="text-sm font-medium text-gray-700">Phone Number</label>
                 <Input
-                  placeholder="Enter new recipient Number"
+                  placeholder="Enter phone number"
                   value={watchedValues.phoneNumber || ""}
                   onChange={handlePhoneNumberChange}
                   maxLength={11}
@@ -372,6 +374,28 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
                   className="p-3 border-gray-300 bg-white"
                 />
                 <FormError message={errors.phoneNumber?.message} />
+              </div>
+
+              {/* Network Selection */}
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-gray-700">Select Network</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {networks.map((network) => (
+                    <button
+                      key={network.value}
+                      type="button"
+                      onClick={() => setValue("network", network.value)}
+                      className={`p-3 text-center border rounded-lg transition-colors ${
+                        watchedValues.network === network.value
+                          ? "border-[#24C0FF] bg-blue-50"
+                          : "border-gray-300 bg-white hover:border-gray-400"
+                      }`}
+                    >
+                      <div className={`w-3 h-3 rounded-full ${network.color} mx-auto mb-1`} />
+                      <span className="text-sm font-medium">{network.label}</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </>
           )}
@@ -402,30 +426,36 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
               {/* Data Plans */}
               <div className="space-y-4">
                 <label className="text-sm font-medium text-gray-700">Select Data Plan</label>
-                <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-                  {dataPlans.map((plan) => (
-                    <button
-                      key={plan.id}
-                      type="button"
-                      onClick={() => handlePlanSelect(plan)}
-                      className={`p-3 text-left border rounded-lg transition-colors ${
-                        selectedPlan?.id === plan.id
-                          ? "border-[#24C0FF] bg-blue-50"
-                          : "border-gray-300 bg-white hover:border-gray-400"
-                      }`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <div>
-                          <div className="font-medium">{plan.data}</div>
-                          <div className="text-sm text-gray-500">
-                            Valid for {plan.validity} • {plan.name}
+
+                {isLoadingPlans ? (
+                  <div className="p-4 text-center text-gray-500">Loading data plans...</div>
+                ) : planError ? (
+                  <div className="p-4 text-center text-red-500">{planError}</div>
+                ) : (
+                  <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                    {dataPlans.map((plan) => (
+                      <button
+                        key={plan.variation_code}
+                        type="button"
+                        onClick={() => handlePlanSelect(plan)}
+                        className={`p-3 text-left border rounded-lg transition-colors ${
+                          selectedPlan?.variation_code === plan.variation_code
+                            ? "border-[#24C0FF] bg-blue-50"
+                            : "border-gray-300 bg-white hover:border-gray-400"
+                        }`}
+                      >
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <div className="font-medium text-sm">{plan.name}</div>
+                          </div>
+                          <div className="text-[#24C0FF] font-medium">
+                            ₦{Number.parseFloat(plan.variation_amount).toLocaleString()}
                           </div>
                         </div>
-                        <div className="text-[#24C0FF] font-medium">₦{plan.amount}</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Balance Info */}
@@ -462,7 +492,7 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Data Plan:</span>
-                    <span className="font-medium">{selectedPlan?.data}</span>
+                    <span className="font-medium">{selectedPlan?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Validity:</span>
@@ -470,7 +500,9 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Amount:</span>
-                    <span className="font-medium text-lg">₦{selectedPlan?.amount.toLocaleString()}</span>
+                    <span className="font-medium text-lg">
+                      ₦{selectedPlan ? Number.parseFloat(selectedPlan.variation_amount).toLocaleString() : "0"}
+                    </span>
                   </div>
                 </div>
 
@@ -503,17 +535,24 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
               <div className="space-y-4">
                 {renderPinInput()}
                 <FormError message={errors.pin?.message} />
+                {apiError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-600 text-center">
+                    {apiError}
+                  </div>
+                )}
               </div>
 
               {/* Purchase Summary (Compact) */}
               <div className="p-3 bg-white rounded-lg border border-gray-200">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Amount:</span>
-                  <span className="font-semibold text-lg">₦{selectedPlan?.amount.toLocaleString()}</span>
+                  <span className="font-semibold text-lg">
+                    ₦{selectedPlan ? Number.parseFloat(selectedPlan.variation_amount).toLocaleString() : "0"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="text-gray-600">Data:</span>
-                  <span className="font-medium">{selectedPlan?.data}</span>
+                  <span className="font-medium">{selectedPlan?.name}</span>
                 </div>
                 <div className="flex justify-between items-center mt-1">
                   <span className="text-gray-600">Phone:</span>
@@ -524,16 +563,57 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
           )}
 
           {step === 5 && (
-            <div className="text-center space-y-4">
-              {/* Success Icon */}
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle className="w-10 h-10 text-green-500" />
-              </div>
+            <div className="text-center space-y-4 py-8">
+              {/* Success State */}
+              {transactionStatus === "delivered" && (
+                <>
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+                    <CheckCircle className="w-10 h-10 text-green-500" />
+                  </div>
+                  <div>
+                    <p className="text-green-600 text-lg font-bold">Data Purchase Successful!</p>
+                    <p className="text-gray-600">Your data has been recharged successfully.</p>
+                  </div>
+                </>
+              )}
 
-              <div>
-                <p className="text-green-600 text-lg font-bold">Data Purchase Successful!</p>
-                <p className="text-gray-600">Your data has been recharged successfully.</p>
-              </div>
+              {/* Failed State */}
+              {transactionStatus === "failed" && (
+                <>
+                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
+                    <X className="w-8 h-8 text-red-500" />
+                  </div>
+                  <div>
+                    <p className="text-red-600 text-lg font-bold">Data Purchase Failed</p>
+                    <p className="text-gray-600">
+                      Your data purchase of ₦
+                      {selectedPlan ? Number.parseFloat(selectedPlan.variation_amount).toLocaleString() : "0"} to{" "}
+                      {watchedValues.phoneNumber} could not be completed.
+                    </p>
+                    <p className="text-sm text-red-500">Please try again or contact support if the problem persists.</p>
+                  </div>
+                </>
+              )}
+
+              {/* Pending State */}
+              {transactionStatus === "pending" && (
+                <>
+                  <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto">
+                    <Clock className="w-8 h-8 text-yellow-500" />
+                  </div>
+                  <div>
+                    <p className="text-yellow-600 text-lg font-bold">Data Purchase Pending</p>
+                    <p className="text-gray-600">
+                      Your data purchase of ₦
+                      {selectedPlan ? Number.parseFloat(selectedPlan.variation_amount).toLocaleString() : "0"} to{" "}
+                      {watchedValues.phoneNumber} is being processed.
+                    </p>
+                    <p className="text-sm text-yellow-600">
+                      You will receive a notification once the transaction is complete.
+                    </p>
+                  </div>
+                </>
+              )}
 
               {/* Transaction Details */}
               <div className="bg-white rounded-lg p-4 space-y-2 text-sm border border-gray-200">
@@ -547,15 +627,17 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
                 </div>
                 <div className="flex justify-between">
                   <span>Data Plan:</span>
-                  <span className="font-semibold">{selectedPlan?.data}</span>
+                  <span className="font-semibold">{selectedPlan?.name}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Amount:</span>
-                  <span className="font-semibold">₦{selectedPlan?.amount.toLocaleString()}</span>
+                  <span className="font-semibold">
+                    ₦{selectedPlan ? Number.parseFloat(selectedPlan.variation_amount).toLocaleString() : "0"}
+                  </span>
                 </div>
                 <div className="flex justify-between">
                   <span>Transaction ID:</span>
-                  <span>#DT{Date.now()}</span>
+                  <span className="font-medium">{transactionId || "Processing..."}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Time:</span>
@@ -572,7 +654,7 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
             <Button
               onClick={onNext}
               className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6] text-white py-3 rounded-lg font-medium"
-              disabled={!watchedValues.phoneNumber || watchedValues.phoneNumber.length !== 11}
+              disabled={!watchedValues.phoneNumber || watchedValues.phoneNumber.length !== 11 || !watchedValues.network}
             >
               Continue
             </Button>
@@ -580,7 +662,7 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
             <Button
               onClick={onNext}
               className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6] text-white py-3 rounded-lg font-medium"
-              disabled={!selectedPlan}
+              disabled={!selectedPlan || isLoadingPlans}
             >
               Continue
             </Button>
@@ -604,7 +686,7 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
               onClick={onReset}
               className="w-full bg-[#24C0FF] hover:bg-[#1BA8E6] text-white py-3 rounded-lg font-medium"
             >
-              Done
+              {transactionStatus === "failed" ? "Try Again" : "Done"}
             </Button>
           )}
         </div>

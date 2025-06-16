@@ -101,7 +101,7 @@ export default function ResetPasswordPage() {
         setErrors({ general: response.message || "Failed to reset password" })
       }
     } catch (error) {
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
     } finally {
       setIsLoading(false)
     }

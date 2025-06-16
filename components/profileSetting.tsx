@@ -1,43 +1,43 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect, useRef } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Checkbox } from "@/components/ui/checkbox"
-import { ArrowLeft } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
-import { useRouter, useSearchParams } from "next/navigation"
-import { AuthAPI } from "@/lib/API/api"
+import type React from "react";
+import { useState, useEffect, useRef } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { AuthAPI } from "@/lib/API/api";
 
 interface ProfileFormData {
-  fullname: string
-  phone: string
-  gender: string
-  country: string
-  pin: number
-  confirmPin: number
+  fullname: string;
+  phone: string;
+  gender: string;
+  country: string;
+  pin: number;
+  confirmPin: number;
 }
 
 interface FormErrors {
-  fullname?: string
-  phone?: string
-  gender?: string
-  country?: string
-  pin?: string
-  confirmPin?: string
-  general?: string
+  fullname?: string;
+  phone?: string;
+  gender?: string;
+  country?: string;
+  pin?: string;
+  confirmPin?: string;
+  general?: string;
 }
 
 export default function ProfileSetupPage() {
-  const router = useRouter()
-    const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const searchParams = useSearchParams()
-  const email = searchParams.get("email") || ""
+  const router = useRouter();
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const searchParams = useSearchParams();
+  const email = searchParams.get("email") || "";
 
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState<ProfileFormData>({
     fullname: "",
     phone: "",
@@ -45,183 +45,197 @@ export default function ProfileSetupPage() {
     country: "Nigeria",
     pin: 0,
     confirmPin: 0,
-  })
+  });
 
   // Store PIN digits as arrays of strings to handle empty states better
-  const [pinDigits, setPinDigits] = useState<string[]>(["", "", "", ""])
-  const [confirmPinDigits, setConfirmPinDigits] = useState<string[]>(["", "", "", ""])
+  const [pinDigits, setPinDigits] = useState<string[]>(["", "", "", ""]);
+  const [confirmPinDigits, setConfirmPinDigits] = useState<string[]>([
+    "",
+    "",
+    "",
+    "",
+  ]);
 
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
-  const [acceptTerms, setAcceptTerms] = useState(false)
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   // PIN input refs
-  const pinRefs = useRef<(HTMLInputElement | null)[]>([])
-  const confirmPinRefs = useRef<(HTMLInputElement | null)[]>([])
+  const pinRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const confirmPinRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Update the numeric PIN values when digits change
   useEffect(() => {
-    const pinString = pinDigits.join("")
-    const pinNumber = pinString.length === 4 ? Number.parseInt(pinString, 10) : 0
-    setFormData((prev) => ({ ...prev, pin: pinNumber }))
-  }, [pinDigits])
+    const pinString = pinDigits.join("");
+    const pinNumber =
+      pinString.length === 4 ? Number.parseInt(pinString, 10) : 0;
+    setFormData((prev) => ({ ...prev, pin: pinNumber }));
+  }, [pinDigits]);
 
   useEffect(() => {
-    const confirmPinString = confirmPinDigits.join("")
-    const confirmPinNumber = confirmPinString.length === 4 ? Number.parseInt(confirmPinString, 10) : 0
-    setFormData((prev) => ({ ...prev, confirmPin: confirmPinNumber }))
-  }, [confirmPinDigits])
+    const confirmPinString = confirmPinDigits.join("");
+    const confirmPinNumber =
+      confirmPinString.length === 4 ? Number.parseInt(confirmPinString, 10) : 0;
+    setFormData((prev) => ({ ...prev, confirmPin: confirmPinNumber }));
+  }, [confirmPinDigits]);
 
   // Check authentication status on mount
   useEffect(() => {
     const checkAuth = async () => {
       if (!AuthAPI.isAuthenticated()) {
-        console.log("No authentication token found")
-        router.push("/login")
-        return
+        console.log("No authentication token found");
+        router.push("/login");
+        return;
       }
 
-      const testResult = await AuthAPI.testConnection()
-      console.log("Connection test result:", testResult)
+      const testResult = await AuthAPI.testConnection();
+      console.log("Connection test result:", testResult);
 
       if (!testResult.success) {
-        console.log("Authentication test failed:", testResult.message)
+        console.log("Authentication test failed:", testResult.message);
       }
-    }
+    };
 
-    checkAuth()
-  }, [router])
+    checkAuth();
+  }, [router]);
 
   // Redirect if no email provided
   useEffect(() => {
     if (!email) {
-      router.push("/signup")
+      router.push("/signup");
     }
-  }, [email, router])
+  }, [email, router]);
 
-  const updateFormData = (field: keyof ProfileFormData, value: string | number) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+  const updateFormData = (
+    field: keyof ProfileFormData,
+    value: string | number
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
-  }
+  };
 
   const handlePinChange = (index: number, value: string, isConfirm = false) => {
     // Only allow numeric input
-    if (value && !/^\d$/.test(value)) return
+    if (value && !/^\d$/.test(value)) return;
 
-    const currentDigits = isConfirm ? confirmPinDigits : pinDigits
-    const setDigits = isConfirm ? setConfirmPinDigits : setPinDigits
+    const currentDigits = isConfirm ? confirmPinDigits : pinDigits;
+    const setDigits = isConfirm ? setConfirmPinDigits : setPinDigits;
 
     // Update the specific digit
-    const newDigits = [...currentDigits]
-    newDigits[index] = value
-    setDigits(newDigits)
+    const newDigits = [...currentDigits];
+    newDigits[index] = value;
+    setDigits(newDigits);
 
     // Auto-focus next input if value was entered
     if (value && index < 3) {
-      const refs = isConfirm ? confirmPinRefs : pinRefs
-      refs.current[index + 1]?.focus()
+      const refs = isConfirm ? confirmPinRefs : pinRefs;
+      refs.current[index + 1]?.focus();
     }
 
     // Clear errors when user starts typing
     if (errors.pin || errors.confirmPin) {
-      setErrors((prev) => ({ ...prev, pin: undefined, confirmPin: undefined }))
+      setErrors((prev) => ({ ...prev, pin: undefined, confirmPin: undefined }));
     }
-  }
+  };
 
-  const handlePinKeyDown = (index: number, e: React.KeyboardEvent, isConfirm = false) => {
-    const currentDigits = isConfirm ? confirmPinDigits : pinDigits
-    const setDigits = isConfirm ? setConfirmPinDigits : setPinDigits
-    const refs = isConfirm ? confirmPinRefs : pinRefs
+  const handlePinKeyDown = (
+    index: number,
+    e: React.KeyboardEvent,
+    isConfirm = false
+  ) => {
+    const currentDigits = isConfirm ? confirmPinDigits : pinDigits;
+    const setDigits = isConfirm ? setConfirmPinDigits : setPinDigits;
+    const refs = isConfirm ? confirmPinRefs : pinRefs;
 
     if (e.key === "Backspace") {
-      const newDigits = [...currentDigits]
+      const newDigits = [...currentDigits];
 
       if (currentDigits[index]) {
         // Clear current field
-        newDigits[index] = ""
-        setDigits(newDigits)
+        newDigits[index] = "";
+        setDigits(newDigits);
       } else if (index > 0) {
         // Move to previous field and clear it
-        newDigits[index - 1] = ""
-        setDigits(newDigits)
-        refs.current[index - 1]?.focus()
+        newDigits[index - 1] = "";
+        setDigits(newDigits);
+        refs.current[index - 1]?.focus();
       }
     }
-  }
+  };
 
   const validateStep1 = (): boolean => {
-    const newErrors: FormErrors = {}
+    const newErrors: FormErrors = {};
 
     if (!formData.fullname.trim()) {
-      newErrors.fullname = "Full name is required"
+      newErrors.fullname = "Full name is required";
     }
 
     if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required"
+      newErrors.phone = "Phone number is required";
     } else if (!/^\d{10,15}$/.test(formData.phone.replace(/\D/g, ""))) {
-      newErrors.phone = "Please enter a valid phone number"
+      newErrors.phone = "Please enter a valid phone number";
     }
 
     if (!formData.gender) {
-      newErrors.gender = "Please select your gender"
+      newErrors.gender = "Please select your gender";
     }
 
     if (!formData.country) {
-      newErrors.country = "Please select your country"
+      newErrors.country = "Please select your country";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const validateStep2 = (): boolean => {
-    const newErrors: FormErrors = {}
+    const newErrors: FormErrors = {};
 
     // Check if all PIN digits are filled
-    const pinComplete = pinDigits.every((digit) => digit !== "")
-    const confirmPinComplete = confirmPinDigits.every((digit) => digit !== "")
+    const pinComplete = pinDigits.every((digit) => digit !== "");
+    const confirmPinComplete = confirmPinDigits.every((digit) => digit !== "");
 
     if (!pinComplete) {
-      newErrors.pin = "PIN must be 4 digits"
+      newErrors.pin = "PIN must be 4 digits";
     }
 
     if (!confirmPinComplete) {
-      newErrors.confirmPin = "Please confirm your PIN"
+      newErrors.confirmPin = "Please confirm your PIN";
     } else if (formData.pin !== formData.confirmPin) {
-      newErrors.confirmPin = "PINs do not match"
+      newErrors.confirmPin = "PINs do not match";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleContinueStep1 = () => {
     if (validateStep1()) {
-      setCurrentStep(2)
+      setCurrentStep(2);
     }
-  }
+  };
 
   const handleBackToStep1 = () => {
-    setCurrentStep(1)
-    setErrors({})
-  }
+    setCurrentStep(1);
+    setErrors({});
+  };
 
   const handleSubmit = async () => {
-    if (!validateStep2() || !acceptTerms) return
+    if (!validateStep2() || !acceptTerms) return;
 
     // Additional validation
     if (!formData.pin || formData.pin < 1000 || formData.pin > 9999) {
-      setErrors({ pin: "PIN must be 4 digits" })
-      return
+      setErrors({ pin: "PIN must be 4 digits" });
+      return;
     }
 
-    setIsLoading(true)
-    setErrors({})
-    setSuccessMessage("")
+    setIsLoading(true);
+    setErrors({});
+    setSuccessMessage("");
 
     try {
       // Prepare the data for the API call - include PIN but NOT confirmPin
@@ -231,59 +245,76 @@ export default function ProfileSetupPage() {
         gender: formData.gender.toLowerCase(),
         country: formData.country,
         pin: formData.pin, // Send the PIN (not confirmPin)
-      }
+      };
 
-      console.log("Sending complete profile data:", profileData)
+      console.log("Sending complete profile data:", profileData);
 
-      const response = await AuthAPI.updateProfile(profileData)
+      const response = await AuthAPI.updateProfile(profileData);
 
       if (response.success) {
-        setSuccessMessage("Profile and PIN created successfully! Redirecting to dashboard...")
+        setSuccessMessage(
+          "Profile and PIN created successfully! Redirecting to dashboard..."
+        );
         setTimeout(() => {
-          router.push("/dashboard")
-        }, 1500)
+          router.push("/dashboard");
+        }, 1500);
       } else {
         // Handle specific error cases
-        if (response.message?.includes("Session expired") || response.message?.includes("Authentication")) {
-          setErrors({ general: "Your session has expired. Please log in again." })
+        if (
+          response.message?.includes("Session expired") ||
+          response.message?.includes("Authentication")
+        ) {
+          setErrors({
+            general: "Your session has expired. Please log in again.",
+          });
           setTimeout(() => {
-            router.push("/login")
-          }, 2000)
+            router.push("/login");
+          }, 2000);
         } else {
-          setErrors({ general: response.message || "Failed to update profile" })
+          setErrors({
+            general: response.message || "Failed to update profile",
+          });
         }
       }
     } catch (error) {
-      console.error("Unexpected error:", error)
-      setErrors({ general: "An unexpected error occurred. Please try again." })
+      console.error("Unexpected error:", error);
+      setErrors({ general: "An unexpected error occurred. Please try again." });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const renderProgressIndicators = () => {
     return (
       <div className="flex items-center gap-2 justify-end">
-        <div className={`w-6 h-1 ${currentStep >= 1 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
-        <div className={`w-6 h-1 ${currentStep >= 2 ? "bg-[#24C0FF]" : "bg-gray-300"}`} />
+        <div
+          className={`w-6 h-1 ${
+            currentStep >= 1 ? "bg-[#24C0FF]" : "bg-gray-300"
+          }`}
+        />
+        <div
+          className={`w-6 h-1 ${
+            currentStep >= 2 ? "bg-[#24C0FF]" : "bg-gray-300"
+          }`}
+        />
         <div className="w-6 h-1 bg-gray-300" />
       </div>
-    )
-  }
+    );
+  };
 
   const renderPinInput = (
     digits: string[],
     refs: React.MutableRefObject<(HTMLInputElement | null)[]>,
-    isConfirm = false,
+    isConfirm = false
   ) => {
     return (
       <div className="flex gap-2 justify-center">
         {[0, 1, 2, 3].map((index) => (
           <Input
             key={index}
-             ref={(el) => {
-                        inputRefs.current[index] = el;
-                      }}
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
             type="text"
             inputMode="numeric"
             pattern="[0-9]*"
@@ -297,8 +328,8 @@ export default function ProfileSetupPage() {
           />
         ))}
       </div>
-    )
-  }
+    );
+  };
 
   return (
     <div className="min-h-screen lg:flex">
@@ -307,9 +338,16 @@ export default function ProfileSetupPage() {
         <div className="absolute top-4 left-10 text-sm text-black">
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center">
-              <Image src="/placeholder.svg?height=40&width=40" alt="Logo" width={40} height={40} />
+              <Image
+                src="/placeholder.svg?height=40&width=40"
+                alt="Logo"
+                width={40}
+                height={40}
+              />
             </div>
-            <span className="text-xl font-semibold text-slate-800">simkash</span>
+            <span className="text-xl font-semibold text-slate-800">
+              simkash
+            </span>
           </div>
         </div>
         <div className="w-[60%] flex flex-col items-center text-center">
@@ -372,18 +410,25 @@ export default function ProfileSetupPage() {
 
               {currentStep === 1 ? (
                 /* Step 1: Profile Information */
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <form
+                  className="space-y-4"
+                  onSubmit={(e) => e.preventDefault()}
+                >
                   <div className="space-y-2">
                     <Label htmlFor="fullname">Full Name</Label>
                     <Input
                       id="fullname"
                       value={formData.fullname}
-                      onChange={(e) => updateFormData("fullname", e.target.value)}
+                      onChange={(e) =>
+                        updateFormData("fullname", e.target.value)
+                      }
                       placeholder="John Doe"
                       className={errors.fullname ? "border-red-500" : ""}
                       disabled={isLoading}
                     />
-                    {errors.fullname && <p className="text-red-500 text-xs">{errors.fullname}</p>}
+                    {errors.fullname && (
+                      <p className="text-red-500 text-xs">{errors.fullname}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -402,7 +447,9 @@ export default function ProfileSetupPage() {
                         id="phone"
                         type="tel"
                         value={formData.phone}
-                        onChange={(e) => updateFormData("phone", e.target.value)}
+                        onChange={(e) =>
+                          updateFormData("phone", e.target.value)
+                        }
                         placeholder="Enter your phone number"
                         className={`h-10 border-gray-300 rounded-l-none focus:border-cyan-400 focus:ring-cyan-400 ${
                           errors.phone ? "border-red-500" : ""
@@ -410,7 +457,9 @@ export default function ProfileSetupPage() {
                         disabled={isLoading}
                       />
                     </div>
-                    {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
+                    {errors.phone && (
+                      <p className="text-red-500 text-xs">{errors.phone}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -419,14 +468,18 @@ export default function ProfileSetupPage() {
                       id="gender"
                       value={formData.gender}
                       onChange={(e) => updateFormData("gender", e.target.value)}
-                      className={`w-full h-10 border-gray-300 border rounded-md ${errors.gender ? "border-red-500" : ""}`}
+                      className={`w-full h-10 border-gray-300 border rounded-md ${
+                        errors.gender ? "border-red-500" : ""
+                      }`}
                       disabled={isLoading}
                     >
                       <option value="">Select Gender</option>
                       <option value="Male">Male</option>
                       <option value="Female">Female</option>
                     </select>
-                    {errors.gender && <p className="text-red-500 text-xs">{errors.gender}</p>}
+                    {errors.gender && (
+                      <p className="text-red-500 text-xs">{errors.gender}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
@@ -434,8 +487,12 @@ export default function ProfileSetupPage() {
                     <select
                       id="country"
                       value={formData.country}
-                      onChange={(e) => updateFormData("country", e.target.value)}
-                      className={`w-full h-10 border border-gray-300 rounded ${errors.country ? "border-red-500" : ""}`}
+                      onChange={(e) =>
+                        updateFormData("country", e.target.value)
+                      }
+                      className={`w-full h-10 border border-gray-300 rounded ${
+                        errors.country ? "border-red-500" : ""
+                      }`}
                       disabled={isLoading}
                     >
                       <option value="Nigeria">Nigeria</option>
@@ -444,7 +501,9 @@ export default function ProfileSetupPage() {
                       <option value="United States">United States</option>
                       <option value="United Kingdom">United Kingdom</option>
                     </select>
-                    {errors.country && <p className="text-red-500 text-xs">{errors.country}</p>}
+                    {errors.country && (
+                      <p className="text-red-500 text-xs">{errors.country}</p>
+                    )}
                   </div>
 
                   <Button
@@ -462,28 +521,44 @@ export default function ProfileSetupPage() {
                   <div className="space-y-4">
                     <Label>Password</Label>
                     {renderPinInput(pinDigits, pinRefs)}
-                    {errors.pin && <p className="text-red-500 text-xs text-center">{errors.pin}</p>}
+                    {errors.pin && (
+                      <p className="text-red-500 text-xs text-center">
+                        {errors.pin}
+                      </p>
+                    )}
                   </div>
 
                   <div className="space-y-4">
                     <Label>Confirm Password</Label>
                     {renderPinInput(confirmPinDigits, confirmPinRefs, true)}
-                    {errors.confirmPin && <p className="text-red-500 text-xs text-center">{errors.confirmPin}</p>}
+                    {errors.confirmPin && (
+                      <p className="text-red-500 text-xs text-center">
+                        {errors.confirmPin}
+                      </p>
+                    )}
                   </div>
 
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="terms"
                       checked={acceptTerms}
-                      onCheckedChange={(checked) => setAcceptTerms(checked as boolean)}
+                      onCheckedChange={(checked) =>
+                        setAcceptTerms(checked as boolean)
+                      }
                     />
                     <label htmlFor="terms" className="text-sm text-gray-600">
                       I accept the{" "}
-                      <Link href="/terms" className="text-blue-600 hover:underline">
+                      <Link
+                        href="/terms"
+                        className="text-blue-600 hover:underline"
+                      >
                         Terms of Use
                       </Link>{" "}
                       and{" "}
-                      <Link href="/privacy" className="text-blue-600 hover:underline">
+                      <Link
+                        href="/privacy"
+                        className="text-blue-600 hover:underline"
+                      >
                         Privacy Policy
                       </Link>
                       .
@@ -505,7 +580,12 @@ export default function ProfileSetupPage() {
                       type="button"
                       onClick={handleSubmit}
                       className="flex-1 h-10 bg-slate-800 hover:bg-slate-900 text-white font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={isLoading || !acceptTerms || formData.pin < 1000 || formData.confirmPin < 1000}
+                      disabled={
+                        isLoading ||
+                        !acceptTerms ||
+                        formData.pin < 1000 ||
+                        formData.confirmPin < 1000
+                      }
                     >
                       {isLoading ? "Creating Account..." : "Continue"}
                     </Button>
@@ -517,5 +597,5 @@ export default function ProfileSetupPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

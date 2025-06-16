@@ -1,7 +1,7 @@
 "use client";
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+
 import { ArrowLeft } from "lucide-react";
 import React, { ReactNode, useState } from "react";
 
@@ -33,11 +33,7 @@ const MultiStepModal: React.FC<MultiStepModalProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const totalSteps = steps.length;
 
-  const onNext = () => {
-    const valid = steps[currentStep].validate?.() ?? true;
-    if (!valid) return;
-    setCurrentStep((prev) => prev + 1);
-  };
+
 
   const onBack = () => setCurrentStep((prev) => prev - 1);
   const onReset = () => {
