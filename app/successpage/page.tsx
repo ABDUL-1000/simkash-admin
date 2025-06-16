@@ -1,10 +1,10 @@
 import SuccessPage from '@/components/successPage'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = () => {
   return (
     <div>
-      <SuccessPage/>
+     <Suspense> <SuccessPage/></Suspense>
     </div>
   )
 }

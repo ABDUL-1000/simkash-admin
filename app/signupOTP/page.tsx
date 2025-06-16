@@ -1,7 +1,8 @@
 import VerifyOTPPage from "@/components/signUpVerifyotp";
+import { Suspense } from "react";
 
 
 
 export default function Page() {
-  return <VerifyOTPPage/>
+  return <Suspense> <VerifyOTPPage/> </Suspense>;
 }

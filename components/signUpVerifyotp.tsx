@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -243,7 +243,7 @@ export default function VerifyOTPSignupPage() {
               </p>
               <div className="flex items-center justify-center gap-2 mt-2">
                 <Mail className="w-4 h-4 text-gray-500" />
-                <span className="font-medium text-slate-800">{email}</span>
+                <span className="font-medium text-slate-800"><Suspense>{email}</Suspense></span>
               </div>
             </div>
 

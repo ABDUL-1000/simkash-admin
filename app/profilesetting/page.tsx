@@ -1,10 +1,10 @@
 import ProfileSetting from '@/components/profileSetting'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = () => {
   return (
     <div>
-      <ProfileSetting/>
+    <Suspense><ProfileSetting/></Suspense>  
     </div>
   )
 }

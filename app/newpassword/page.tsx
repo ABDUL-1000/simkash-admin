@@ -1,10 +1,10 @@
 import NewPassword from '@/components/newPassword'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = () => {
   return (
     <div>
-      <NewPassword/>
+    <Suspense><NewPassword/></Suspense> 
     </div>
   )
 }

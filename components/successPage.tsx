@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Button } from "./ui/button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
@@ -61,16 +61,7 @@ const SuccessPage = () => {
     verifyPayment();
   }, [searchParams]);
 
-  if (loading) {
-    return (
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto animate-pulse">
-          <div className="w-10 h-10 bg-blue-200 rounded-full"></div>
-        </div>
-        <p className="text-blue-600 text-lg font-bold">Verifying Transaction...</p>
-      </div>
-    );
-  }
+
 
   if (error) {
     return (
@@ -150,7 +141,7 @@ const SuccessPage = () => {
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Transaction ID:</span>
-            <span>#{transaction.reference}</span>
+            <span><Suspense>#{transaction.reference}</Suspense></span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-500">Status:</span>

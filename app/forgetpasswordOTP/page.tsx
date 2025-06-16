@@ -1,10 +1,10 @@
 import VerifyOTPForgotPasswordPage from '@/components/forgetPasswordVerifyOtp'
-import React from 'react'
+import React, { Suspense } from 'react'
 
 const page = () => {
   return (
     <div>
-      <VerifyOTPForgotPasswordPage/>
+    <Suspense> <VerifyOTPForgotPasswordPage/></Suspense> 
     </div>
   )
 }
