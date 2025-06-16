@@ -306,6 +306,14 @@ export default function SignupPage() {
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
+               <div className="text-center mt-6">
+              <p className="text-sm text-gray-600">
+                Don't have an account?{" "}
+                <Link href="/signup" className="text-slate-800 hover:underline font-medium">
+                  Sign up
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>
