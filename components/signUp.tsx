@@ -1,27 +1,27 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Mail, Lock } from "lucide-react"
-import Link from "next/link"
-import Image from "next/image"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
 
-import { useRouter } from "next/navigation"
-import { AuthAPI } from "@/lib/API/api"
+import { useRouter } from "next/navigation";
+import { AuthAPI } from "@/lib/API/api";
 
 interface SignupFormData {
-  email: string
-  password: string
-  confirmPassword: string
+  email: string;
+  password: string;
+  confirmPassword: string;
 }
 
 interface FormErrors {
-  email?: string
-  password?: string
-  confirmPassword?: string
-  general?: string
+  email?: string;
+  password?: string;
+  confirmPassword?: string;
+  general?: string;
 }
 
 export default function SignupPage() {
@@ -29,85 +29,94 @@ export default function SignupPage() {
     email: "",
     password: "",
     confirmPassword: "",
-  })
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [errors, setErrors] = useState<FormErrors>({})
-  const [isLoading, setIsLoading] = useState(false)
-  const [successMessage, setSuccessMessage] = useState("")
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
 
-  const router = useRouter()
+  const router = useRouter();
 
   const updateFormData = (field: keyof SignupFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value }));
     // Clear error when user starts typing
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
-  }
+  };
 
   const validateForm = (): boolean => {
-    const newErrors: FormErrors = {}
+    const newErrors: FormErrors = {};
 
     // Email validation
     if (!formData.email) {
-      newErrors.email = "Email is required"
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email"
+      newErrors.email = "Please enter a valid email";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required"
+      newErrors.password = "Password is required";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
+      newErrors.password = "Password must be at least 6 characters";
     }
 
     // Confirm password validation
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = "Please confirm your password"
+      newErrors.confirmPassword = "Please confirm your password";
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match"
+      newErrors.confirmPassword = "Passwords do not match";
     }
 
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleGoogleSignup = () => {
-    console.log("Google signup clicked")
+    console.log("Google signup clicked");
     // Implement Google OAuth here
-  }
+  };
 
   const handleCreateAccount = async () => {
-    if (!validateForm()) return
+    if (!validateForm()) return;
 
-    setIsLoading(true)
-    setErrors({})
-    setSuccessMessage("")
+    setIsLoading(true);
+    setErrors({});
+    setSuccessMessage("");
 
     try {
       const response = await AuthAPI.sendOTP({
         email: formData.email,
         password: formData.password,
         confirm_password: formData.confirmPassword,
-      })
+      });
 
       if (response.success) {
-        setSuccessMessage(response.message || "OTP sent successfully! Check your email.")
+        setSuccessMessage(
+          response.message || "OTP sent successfully! Check your email."
+        );
         // Redirect to OTP verification page with source parameter
         setTimeout(() => {
-          router.push(`/signupOTP?email=${encodeURIComponent(formData.email)}&source=signup`)
-        }, 1500)
+          router.push(
+            `/signupOTP?email=${encodeURIComponent(
+              formData.email
+            )}&source=signup`
+          );
+        }, 1500);
       } else {
-        setErrors({ general: response.message || "Failed to send OTP" })
+        setErrors({ general: response.message || "Failed to send OTP" });
       }
     } catch (error) {
-      setErrors(errors => ({ ...errors, general: "An unexpected error occurred. Please try again." }))
+      setErrors((errors) => ({
+        ...errors,
+        general: "An unexpected error occurred. Please try again.",
+      }));
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row">
@@ -118,7 +127,9 @@ export default function SignupPage() {
             <div className="flex items-center justify-center">
               <Image src="/simcard.png" alt="Logo" width={40} height={40} />
             </div>
-            <span className="text-xl font-semibold text-slate-800">simkash</span>
+            <span className="text-xl font-semibold text-slate-800">
+              simkash
+            </span>
           </div>
         </div>
         <div className="w-[60%] flex flex-col items-center text-center">
@@ -149,7 +160,9 @@ export default function SignupPage() {
         <div className="flex items-center lg:hidden justify-between">
           <div className="flex lg:h-6 lg:w-6 items-center gap-1">
             <Image src="/simcard.png" alt="Logo" width={40} height={40} />
-            <span className="text-xl font-semibold text-slate-800">simkash</span>
+            <span className="text-xl font-semibold text-slate-800">
+              simkash
+            </span>
           </div>
           <Link href="/login" className="">
             <span className="hover:underline">Sign In</span>
@@ -159,7 +172,9 @@ export default function SignupPage() {
         <div className="flex flex-1 items-center justify-center">
           <div className="w-full max-w-md rounded-lg bg-white p-6">
             <div className="text-center mb-8">
-              <h2 className="text-2xl font-bold text-slate-800">Create your Account</h2>
+              <h2 className="text-2xl font-bold text-slate-800">
+                Create your Account
+              </h2>
             </div>
 
             {/* Success Message */}
@@ -218,7 +233,10 @@ export default function SignupPage() {
             <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
               {/* Email */}
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Email
                 </Label>
                 <div className="relative">
@@ -235,12 +253,17 @@ export default function SignupPage() {
                     disabled={isLoading}
                   />
                 </div>
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
+                {errors.email && (
+                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
+                )}
               </div>
 
               {/* Password */}
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Password
                 </Label>
                 <div className="relative">
@@ -261,15 +284,24 @@ export default function SignupPage() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
-                {errors.password && <p className="text-red-500 text-xs mt-1">{errors.password}</p>}
+                {errors.password && (
+                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
+                )}
               </div>
 
               {/* Confirm Password */}
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-sm font-medium text-gray-700">
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-sm font-medium text-gray-700"
+                >
                   Confirm Password
                 </Label>
                 <div className="relative">
@@ -279,7 +311,9 @@ export default function SignupPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     placeholder="Confirm Password"
                     value={formData.confirmPassword}
-                    onChange={(e) => updateFormData("confirmPassword", e.target.value)}
+                    onChange={(e) =>
+                      updateFormData("confirmPassword", e.target.value)
+                    }
                     className={`h-10 pl-10 pr-10 border-gray-300 focus:border-cyan-400 focus:ring-cyan-400 ${
                       errors.confirmPassword ? "border-red-500" : ""
                     }`}
@@ -290,10 +324,18 @@ export default function SignupPage() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                   >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="w-5 h-5" />
+                    ) : (
+                      <Eye className="w-5 h-5" />
+                    )}
                   </button>
                 </div>
-                {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
+                {errors.confirmPassword && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.confirmPassword}
+                  </p>
+                )}
               </div>
 
               {/* Create Account Button */}
@@ -306,10 +348,13 @@ export default function SignupPage() {
                 {isLoading ? "Creating Account..." : "Create Account"}
               </Button>
             </form>
-               <div className="text-center mt-6">
+            <div className="text-center mt-6">
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
-                <Link href="/signup" className="text-slate-800 hover:underline font-medium">
+                <Link
+                  href="/signup"
+                  className="text-slate-800 hover:underline font-medium"
+                >
                   Sign up
                 </Link>
               </p>
@@ -318,5 +363,5 @@ export default function SignupPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

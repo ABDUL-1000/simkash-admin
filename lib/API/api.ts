@@ -934,7 +934,7 @@ static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ amount, callback_url: "http://localhost:3002/successpage" }),
+      body: JSON.stringify({ amount }),
     });
 
     const result = await response.json();
