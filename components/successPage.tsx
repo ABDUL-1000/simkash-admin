@@ -6,6 +6,7 @@ import { Button } from "./ui/button";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AuthAPI } from "@/lib/API/api";
+import Loader from "./Loader";
 
 
 interface TransactionData {
@@ -83,12 +84,7 @@ const SuccessPage = () => {
 
   if (!transaction) {
     return (
-      <div className="text-center space-y-4">
-        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto">
-          <div className="w-10 h-10 bg-gray-300 rounded-full"></div>
-        </div>
-        <p className="text-gray-600 text-lg font-bold">No transaction data found</p>
-      </div>
+      <Loader/>
     );
   }
 
