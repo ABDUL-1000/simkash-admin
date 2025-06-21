@@ -345,7 +345,7 @@ export class AuthAPI {
       console.log("Login response:", result)
 
       if (!response.ok) {
-        toast.error(result.responseMessage || result.message || "Network error occurred") 
+      
         throw new Error(result.responseMessage || result.message || "Network error occurred")
         
       }
