@@ -22,10 +22,13 @@ export default function DashboardLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
+       
         <div>
+          
           {children}
           <Toaster position="top-right" />
         </div>
+         
       </body>
     </html>
   );

@@ -1,5 +1,6 @@
-import { toast } from "sonner"
+
 import { AirtimeRequest, DataPlansResponse, DataRequest } from "../type"
+import { BASE_URL } from "@/constants/api"
 
 interface SignupRequest {
   email: string
@@ -70,7 +71,7 @@ interface TransferRequest  {
 }
 
 export class AuthAPI {
-  private static baseUrl = "https://simkashapi.onrender.com"
+  private static baseUrl = BASE_URL
 
   // Cookie management methods
   static setCookie(name: string, value: string, days = 7) {

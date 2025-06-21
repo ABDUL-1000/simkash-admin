@@ -387,7 +387,7 @@ export default function ProfileSetupPage() {
       </div>
 
       {/* Right Side */}
-      <div className="lg:w-1/2 h-screen bg-gray-100">
+      <div className="lg:w-1/2  bg-gray-100">
         <div className="flex-col relative p-2">
           <div className="absolute hidden lg:block top-[-15] right-10 text-sm text-black">
             Need to start over?{" "}
@@ -415,20 +415,6 @@ export default function ProfileSetupPage() {
         <div className="flex flex-col bg-gray-100 p-2">
           <div className="flex flex-1 items-center justify-center">
             <div className="w-full max-w-md rounded-lg shadow-md bg-white p-6">
-              {/* Success Message */}
-              {successMessage && (
-                <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <p className="text-green-700 text-sm">{successMessage}</p>
-                </div>
-              )}
-
-              {/* General Error */}
-              {errors.general && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-700 text-sm">{errors.general}</p>
-                </div>
-              )}
-
               {currentStep === 1 ? (
                 /* Step 1: Profile Information */
                 <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>

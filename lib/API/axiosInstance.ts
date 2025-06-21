@@ -1,9 +1,10 @@
+import { BASE_URL } from "@/constants/api";
 import axios from "axios";
 
 console.log("API Base URL:", process.env.BASE_URL);
 
 const api = axios.create({
-  baseURL: process.env.BASE_URL,
+  baseURL: BASE_URL,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",

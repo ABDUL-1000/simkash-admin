@@ -35,8 +35,8 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       icon: <Wallet className="h-5 w-5" />,
     },
     {
-      name: "My SIM",
-      path: "/dashboard/sim",
+      name: "Device SIM",
+      path: "/dashboard/device-sim",
       icon: <CreditCard className="h-5 w-5" />,
     },
     {
