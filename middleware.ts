@@ -19,44 +19,43 @@ export function middleware(request: NextRequest) {
       .filter((entry): entry is [string, string] => entry !== null),
   )
 
-  // Get the access token (matching the cookie name from AuthAPI)
   const accessToken = cookies.access_token
-  console.log("Middleware - Access token:", accessToken ? "Present" : "Not found")
-  console.log("Middleware - Current pathname:", pathname)
-  console.log("Middleware - All cookies:", Object.keys(cookies))
 
   // Protected routes - require authentication
-  const protectedRoutes = ["/dashboard", "/profile-setup", "/settings", "/account"]
+  const protectedRoutes = ["/dashboard", "/settings", "/account"]
 
   // Public routes - redirect to dashboard if already authenticated
-  const publicRoutes = ["/login", "/signup", "/verify-otp", "/forgot-password", "/reset-password"]
+  const publicRoutes = ["/login", "/signup", "/verify-otp", "/forgotpassword", "/reset-password"]
 
-  // Check if current path is a protected route
+  // Special route that doesn't require full authentication but needs temp access
+  const profileCompletionRoutes = ["/profilesetting"]
+
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
-
-  // Check if current path is a public route
   const isPublicRoute = publicRoutes.some((route) => pathname.startsWith(route))
+  const isProfileCompletionRoute = profileCompletionRoutes.some((route) => pathname.startsWith(route))
+
+  // Handle profile completion route - allow access without permanent token
+  if (isProfileCompletionRoute) {
+    // Allow access to profile settings regardless of token status
+    // The profile completion logic will handle authentication via sessionStorage
+    return NextResponse.next()
+  }
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !accessToken) {
-    console.log("Middleware - No token found for protected route, redirecting to login...")
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
   // Redirect authenticated users from public routes to dashboard
-  // Exception: Allow access to verify-otp and reset-password even if authenticated
   if (isPublicRoute && accessToken && !pathname.startsWith("/verify-otp") && !pathname.startsWith("/reset-password")) {
-    console.log("Middleware - Token found for public route, redirecting to dashboard...")
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
   // Special case: Redirect root path based on authentication status
   if (pathname === "/") {
     if (accessToken) {
-      console.log("Middleware - Authenticated user on root, redirecting to dashboard...")
       return NextResponse.redirect(new URL("/dashboard", request.url))
     } else {
-      console.log("Middleware - Unauthenticated user on root, redirecting to signup...")
       return NextResponse.redirect(new URL("/signup", request.url))
     }
   }
@@ -64,17 +63,6 @@ export function middleware(request: NextRequest) {
   return NextResponse.next()
 }
 
-// Configure which paths the middleware should run on
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder files
-     */
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
 }

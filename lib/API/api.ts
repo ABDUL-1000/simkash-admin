@@ -1,3 +1,4 @@
+import { toast } from "sonner"
 import { AirtimeRequest, DataPlansResponse, DataRequest } from "../type"
 
 interface SignupRequest {
@@ -344,11 +345,14 @@ export class AuthAPI {
       console.log("Login response:", result)
 
       if (!response.ok) {
+        toast.error(result.responseMessage || result.message || "Network error occurred") 
         throw new Error(result.responseMessage || result.message || "Network error occurred")
+        
       }
 
       if (!result.responseSuccessful) {
         return {
+          
           success: false,
           message: result.responseMessage || "Login failed",
         }
@@ -357,12 +361,12 @@ export class AuthAPI {
       if (result.responseBody && result.responseBody.accessToken) {
         const { accessToken } = result.responseBody
 
-        this.setAccessToken(accessToken)
+        // this.setAccessToken(accessToken)
         console.log("Access token saved successfully")
 
         setTimeout(() => {
-          const savedAccessToken = this.getAccessToken()
-          console.log("Verification - Access token saved:", !!savedAccessToken)
+          // const savedAccessToken = this.getAccessToken()
+          // console.log("Verification - Access token saved:", !!savedAccessToken)
         }, 100)
 
         return {

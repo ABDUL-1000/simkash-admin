@@ -10,6 +10,7 @@ import Image from "next/image";
 
 import { useRouter } from "next/navigation";
 import { AuthAPI } from "@/lib/API/api";
+import { toast } from "sonner";
 
 interface SignupFormData {
   email: string;
@@ -94,6 +95,7 @@ export default function SignupPage() {
       });
 
       if (response.success) {
+        toast.success(response.message || "OTP sent successfully!");
         setSuccessMessage(
           response.message || "OTP sent successfully! Check your email."
         );
@@ -106,9 +108,11 @@ export default function SignupPage() {
           );
         }, 1500);
       } else {
+        toast.error(response.message || "Failed to send OTP");
         setErrors({ general: response.message || "Failed to send OTP" });
       }
     } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
       setErrors((errors) => ({
         ...errors,
         general: "An unexpected error occurred. Please try again.",
@@ -177,19 +181,8 @@ export default function SignupPage() {
               </h2>
             </div>
 
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-700 text-sm">{successMessage}</p>
-              </div>
-            )}
 
-            {/* General Error */}
-            {errors.general && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{errors.general}</p>
-              </div>
-            )}
+
 
             <Button
               type="button"
@@ -352,10 +345,10 @@ export default function SignupPage() {
               <p className="text-sm text-gray-600">
                 Don't have an account?{" "}
                 <Link
-                  href="/signup"
+                  href="/login"
                   className="text-slate-800 hover:underline font-medium"
                 >
-                  Sign up
+                  Sign In
                 </Link>
               </p>
             </div>

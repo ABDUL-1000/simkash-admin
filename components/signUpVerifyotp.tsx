@@ -9,6 +9,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthAPI } from "@/lib/API/api";
+import { toast } from "sonner";
 
 interface FormErrors {
   otp?: string;
@@ -110,7 +111,7 @@ export default function VerifyOTPSignupPage() {
 
   const handleVerifyOTP = async () => {
     if (!validateOtp()) return;
-
+    toast.success("OTP verified successfully!");
     setIsLoading(true);
     setErrors({});
     setSuccessMessage("");
@@ -124,18 +125,21 @@ export default function VerifyOTPSignupPage() {
       if (response.success) {
         const destination =
           redirectTo || `/profilesetting?email=${encodeURIComponent(email)}`;
-        setSuccessMessage(`OTP verified successfully! Redirecting...`);
+       toast.success("OTP verified successfully! Redirecting...");
+        
 
         // Redirect to profile setup
         setTimeout(() => {
           router.push(destination);
         }, 1500);
       } else {
+        toast.error(response.message || "Invalid OTP. Please try again.");
         setErrors({
           general: response.message || "Invalid OTP. Please try again.",
         });
       }
     } catch (error) {
+      toast.error("An unexpected error occurred. Please try again.");
       setErrors({ general: "An unexpected error occurred. Please try again." });
     } finally {
       setIsLoading(false);
@@ -153,7 +157,8 @@ export default function VerifyOTPSignupPage() {
       });
 
       if (response.success) {
-        setSuccessMessage("New OTP sent successfully!");
+        toast.success(response.message || "OTP sent successfully!");
+        setSuccessMessage(response.message || "OTP sent successfully!");
         setCountdown(300); // Reset to 5 minutes
         setCanResend(false);
         setOtp(["", "", "", "", "", ""]); // Clear OTP fields
@@ -162,9 +167,11 @@ export default function VerifyOTPSignupPage() {
           inputRefs.current[0]?.focus();
         }, 100);
       } else {
+        toast.error(response.message || "Failed to resend OTP");
         setErrors({ general: response.message || "Failed to resend OTP" });
       }
     } catch (error) {
+      toast.error("Failed to resend OTP. Please try again.");
       setErrors({ general: "Failed to resend OTP. Please try again." });
     } finally {
       setIsResending(false);
@@ -247,20 +254,8 @@ export default function VerifyOTPSignupPage() {
               </div>
             </div>
 
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-700 text-sm">{successMessage}</p>
-              </div>
-            )}
 
-            {/* General Error */}
-            {errors.general && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{errors.general}</p>
-              </div>
-            )}
-
+   
             {/* Timeout Warning */}
             {countdown === 0 && (
               <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
