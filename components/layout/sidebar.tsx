@@ -4,11 +4,12 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
-import {  Wallet, CreditCard, ReceiptText, LifeBuoy, Settings, Menu, X, LogOut, LayoutDashboard } from "lucide-react"
+import { Wallet, CreditCard, ReceiptText, LifeBuoy, Settings, Menu, X, LogOut, LayoutDashboard } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
 import { AuthAPI } from "@/lib/API/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
+import { useDashboardStore } from "@/app/store/zustandstore/useStore"
 
 
 interface SidebarProps {
@@ -19,6 +20,8 @@ interface SidebarProps {
 export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmail.com" }: SidebarProps) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
+    const userDetails = useDashboardStore((state) => state.userDetails)
+    const userProfile = useDashboardStore((state) => state.userProfile)
 
   const mainRoutes = [
     {
@@ -142,7 +145,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                 <Button variant="ghost" size="icon" className="rounded-full">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
                     <span className="text-sm font-medium text-gray-600">
-                      {username
+                      {userProfile?.fullname
                         .split(" ")
                         .map((n) => n[0])
                         .join("")
@@ -154,8 +157,8 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
               <DropdownMenuContent align="start" className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2  ">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{username}</p>
-                    <p className="text-xs text-muted-foreground">{email}</p>
+                    <p className="text-sm font-medium">{userProfile?.fullname}</p>
+                    <p className="text-xs text-muted-foreground">{userDetails?.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -186,7 +189,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer">
+                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer flex items-center justify-start">
                   <LogOut className="mr-2 h-4 w-4" />
                   Logout
                 </DropdownMenuItem>
@@ -197,7 +200,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full hover:bg-gray-200"
+                className="h-8 w-8 rounded-full hover:bg-gray-200  "
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />

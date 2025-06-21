@@ -7,15 +7,19 @@ import { Bell, Search} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 
-import { AuthAPI } from "@/lib/API/api"
+
+import { useDashboardStore } from "@/app/store/zustandstore/useStore"
 
 interface NavbarProps {
   username?: string
   email?: string
 }
 
-export function Navbar({ username = "Yusuf", email = "yusufababa50@gmail.com" }: NavbarProps) {
+
+export function Navbar({ username, email }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("")
+  const userProfile = useDashboardStore((state) => state.userProfile)
+
   const currentTime = new Date()
   const hours = currentTime.getHours()
 
@@ -40,7 +44,7 @@ export function Navbar({ username = "Yusuf", email = "yusufababa50@gmail.com" }:
         {/* Desktop Greeting */}
         <div className="hidden lg:block">
           <h1 className="text-xl font-medium">
-            {greeting}, {username}
+            {greeting}, {userProfile?.fullname}
           </h1>
         </div>
 

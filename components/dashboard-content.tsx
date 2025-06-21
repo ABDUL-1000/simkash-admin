@@ -10,6 +10,8 @@ import WithdrawModal from "./modals/withdrawModal"
 import { Skeleton } from "./ui/skeleton"
 import { AuthAPI } from "@/lib/API/api"
 import { Eye, EyeOff } from "lucide-react"
+import { useDashboardStore } from "@/app/store/zustandstore/useStore"
+import { set } from "zod"
 
 interface Transaction {
   id: number
@@ -21,6 +23,7 @@ interface Transaction {
 }
 
 interface DashboardData {
+  date: string
   wallet: {
     balance: string
   }
@@ -33,15 +36,19 @@ export function DashboardContent() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [showBalance, setShowBalance] = useState(false)
+   const setDashboardDatas = useDashboardStore((state) => state.setDashboardData)
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true)
         const response = await AuthAPI.getDashboardData()
-        
+
         if (response.success) {
-          setDashboardData(response.data)
+          const data = response.data
+          setDashboardData(data)
+          setDashboardDatas(data)
+          console.log("✅ Set dashboard data:", response.data)
         } else {
           setError(response.message || "Failed to load dashboard data")
         }
@@ -55,7 +62,6 @@ export function DashboardContent() {
 
     fetchDashboardData()
   }, [])
-
   const toggleBalanceVisibility = () => {
     setShowBalance(!showBalance)
   }
@@ -165,14 +171,14 @@ const formatDate = (dateString: string) => {
             <h3 className="lg:text-lg text-sm font-medium text-gray-600 mb-2">Wallet Balance</h3>
             <div className="flex items-center lg:justify-center">
               <span className="lg:text-5xl text-2xl font-bold">
-                <span className="text-gray-400">₦</span>
+               
                 {showBalance ? (
                   <span className="text-black">
-                    {dashboardData.wallet.balance.split('.')[0]}.
-                    <span className="text-gray-400">{dashboardData.wallet.balance.split('.')[1]}</span>
+                    {formatAmount(dashboardData.wallet.balance)}.
+                  
                   </span>
                 ) : (
-                  <span className="text-black">•••••.<span className="text-gray-400">••</span></span>
+                  <span className="text-black">••••</span>
                 )}
               </span>
               <button 

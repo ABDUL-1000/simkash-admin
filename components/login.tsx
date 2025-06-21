@@ -159,19 +159,6 @@ export default function LoginPage() {
               <p className="text-gray-600 text-sm mt-2">Sign in to your account</p>
             </div>
 
-            {/* Success Message */}
-            {successMessage && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-green-700 text-sm">{successMessage}</p>
-              </div>
-            )}
-
-            {/* General Error */}
-            {errors.general && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <p className="text-red-700 text-sm">{errors.general}</p>
-              </div>
-            )}
 
             <Button
               type="button"
@@ -214,27 +201,7 @@ export default function LoginPage() {
             {/* Form */}
             <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
               {/* Email */}
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-                  Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="olivia@untitledui.com"
-                    value={formData.email}
-                    onChange={(e) => updateFormData("email", e.target.value)}
-                    className={`h-10 pl-10 border-gray-300 focus:border-cyan-400 focus:ring-cyan-400 ${
-                      errors.email ? "border-red-500" : ""
-                    }`}
-                    disabled={isLoading}
-                  />
-                </div>
-                {errors.email && <p className="text-red-500 text-xs mt-1">{errors.email}</p>}
-              </div>
-
+            
               {/* Password */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">

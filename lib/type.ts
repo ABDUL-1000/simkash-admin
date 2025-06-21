@@ -176,3 +176,33 @@ export interface DataPlansResponse {
   variation_amount: string
   fixedPrice: string
 }
+
+
+export interface UserDetails {
+  id: number;
+  username: string | null;
+  email: string;
+  phone: string;
+  password: string;
+}
+
+export interface UserProfile {
+  id: number;
+  fullname: string;
+  gender: string;
+  country: string;
+  currency: string;
+  profile_picture: string;
+  user_id: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
+
+export interface DashboardData {
+  transaction: Transaction[];
+  userDetails: UserDetails;
+  userProfile: UserProfile;
+  wallet: Wallet;
+}
