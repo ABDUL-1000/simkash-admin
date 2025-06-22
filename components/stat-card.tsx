@@ -17,16 +17,18 @@ export function StatCard({
   noteColor = "text-muted-foreground",
 }: StatCardProps) {
   return (
-    <Card className={`border-0 shadow-none bg-[#FAFAFA] `}>
-      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-        <CardTitle className="text-sm font-medium text-muted-foreground flex gap-2"><span>{icon}</span> {title}</CardTitle>
-        
+    <Card className="border-0 p-2 space-y-2 shadow-none bg-[#FAFAFA]">
+      <CardHeader className="flex  flex-row items-center px-0 lg:justify-between pb-2 space-y-0">
+        <CardTitle className="text-sm font-medium py-4  text-[#000000] flex justify-start gap-2">
+          <span className="text-[#000000]">{icon}</span> 
+          {title} 
+        </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold flex gap-6 justify-between items-center">{value}  <span className="text-[12px] text-muted-foreground">{note}</span></div>
-        <p className={`text-xs mt-1 ${noteColor}`}>
-         
-        </p>
+      <CardContent className="px-0">
+        <div className="flex gap-6 justify-between items-center">
+          <span className="text-[16px] ">{value}</span>
+          <span className={`text-[12px] bg-[#FFFFFF] rounded-full p-1 ${noteColor}`}>{note}</span>
+        </div>
       </CardContent>
     </Card>
   )

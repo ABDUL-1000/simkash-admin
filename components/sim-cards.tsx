@@ -1,15 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { Search, Edit2, Trash2, MoreVerticalIcon } from "lucide-react"
+import { Search, Edit2, Trash2, MoreVerticalIcon, MoreVertical, Edit } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import Image from "next/image"
 
 interface Sims {
-
-SimNumber: string
+  SimNumber: string
   network: string
   ActiveDate: string
   ExpiryDate: string
@@ -26,7 +27,7 @@ export default function OrderProductsTable() {
     { SimNumber: " 07083175021", network: "MTN", ActiveDate: "Today, 9:12 AM", ExpiryDate: "2nd June, 2026", dataPlan: "Unlimited Yearly" , status: "Active" },
     { SimNumber: "0901XXXX456", network: "Airtel", ActiveDate: "Today, 9:12 AM", ExpiryDate: "2nd June, 2026", dataPlan: "Unlimited Yearly", status: "pending" },
     { SimNumber: "0901XXXX456", network: "Glo", ActiveDate: "Today, 9:12 AM", ExpiryDate: "2nd June, 2026", dataPlan: "Unlimited Yearly", status: "Inactive" },
-     ]
+  ]
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -36,7 +37,6 @@ export default function OrderProductsTable() {
         return "bg-[#FDCA8647] text-[#FF9100]"
       case "Inactive":
         return "bg-[#FEF1F2] text-[#981B25]"
-     
       default:
         return "bg-gray-100 text-gray-800"
     }
@@ -47,14 +47,12 @@ export default function OrderProductsTable() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-sm">
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-sm overflow-hidden hidden lg:block">
       <div className="p-6">
-        <h1 className="text-xl font-medium text-gray-800 mb-6">Recent Orders</h1>
-
         <div className="flex flex-col sm:flex-row justify-between gap-4 mb-6">
           <div className="relative w-full sm:w-96">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input placeholder="Search Products" className="pl-10 bg-white border border-gray-200 rounded-full h-10" />
+            <Input placeholder="Search sim" className="pl-10 bg-white border border-gray-200 rounded-full h-10" />
           </div>
           <Select defaultValue="all">
             <SelectTrigger className="w-full sm:w-30 bg-white border border-gray-200 rounded-full h-10">
@@ -62,7 +60,7 @@ export default function OrderProductsTable() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="beverages">Active</SelectItem>
+              <SelectItem value="beverages">Active</SelectItem> 
               <SelectItem value="food">Inactive</SelectItem>
               <SelectItem value="snacks">pending</SelectItem>
             </SelectContent>
@@ -85,9 +83,9 @@ export default function OrderProductsTable() {
             <TableBody>
               {products.map((sim) => (
                 <TableRow key={sim.SimNumber} className="">
-                  <TableCell  className="font-medium py-5">{sim.SimNumber}</TableCell>
+                  <TableCell className="font-medium py-5">{sim.SimNumber}</TableCell>
                   <TableCell className="py-5">{sim.network}</TableCell>
-                 <TableCell className="py-5">
+                  <TableCell className="py-5">
                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(sim.status)}`}>
                       {sim.status}
                     </span>
@@ -96,9 +94,27 @@ export default function OrderProductsTable() {
                   <TableCell className="py-5">{sim.ExpiryDate}</TableCell>
                   <TableCell className="py-5">{sim.dataPlan}</TableCell>
                   <TableCell className="text-right py-5">
-                    <div className="flex justify-center">
-                      <MoreVerticalIcon/>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-40 bg-white shadow-md rounded-md border border-gray-200">
+                        <DropdownMenuItem className="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center justify-between">
+                         <span>Activate</span>
+                          
+                          <Image src="/arrow-right.png" alt="Activate" width={20} height={20} className="w-2 h-2 " />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer px-4 py-2 hover:bg-gray-100 flex items-center justify-between">
+                         <span>Subscribe</span>
+                         
+                          <Image src="/arrow-right.png" alt="Activate" width={20} height={20} className="w-2 h-2 " />
+                        </DropdownMenuItem>
+                       
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

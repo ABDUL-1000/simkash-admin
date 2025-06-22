@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -44,6 +45,7 @@
 }
 
 :root {
+   --font-sora: 'Sora', sans-serif;
   --radius: 0.625rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -117,6 +119,11 @@
     @apply border-border outline-ring/50;
   }
   body {
+     @apply bg-background text-foreground;
+    font-family: var(--font-sora); 
     @apply bg-background text-foreground;
+  }
+  .font-sora {
+    font-family: var(--font-sora);
   }
 }

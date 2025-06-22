@@ -21,14 +21,14 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div className="flex  justify-between items-center">
-      <div className="text-[#4D4D4D]">
-        <h2 className="font-bold text-[20px] mb-2 leading-6">{title}</h2>
-        <p className="font-normal text-[16px] leading-6">{subtitle}</p>
+      <div className="text-[#4D4D4D] text-[16px]  lg:flex bg-[#FFFFFF] gap-2 p-2">
+        <h2 className="font-bold text-[16px] mb-2 leading-6">{title}</h2>
+        <p className="font-normal text-[14px] leading-6">{subtitle}</p>
       </div>
       {onAddClick && (
         <Button onClick={onAddClick} className="rounded-md bg-[#132939] flex items-center gap-2">
           {addIcon}
-          {addLabel}
+        <span className="hidden lg:block"> {addLabel}</span>  
         </Button>
       )}
     </div>

@@ -11,15 +11,15 @@ export function SimManagement() {
   return (
     <div>
       <PageHeader
-        title=""
-        subtitle=""
+        title="Your Partner:"
+        subtitle="You don’t have partner yet"
         onAddClick={() => setIsOpen(true)}
         addLabel="Request SIM"
       />
       <ModalForm
         isOpen={isOpen}
         onOpenChange={setIsOpen}
-        title="Add New Product"
+        title="Add New Sim"
         submitLabel="Add Product"
         onSubmit={(data) => console.log("Product:", data)}
         fields={[

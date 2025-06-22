@@ -1,10 +1,14 @@
 import type { Metadata } from "next";
-
+import { Sora } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 
-
-
+// Initialize the Sora font
+const sora = Sora({
+  subsets: ["latin"],
+  variable: "--font-sora",
+  weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+});
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,8 +21,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressContentEditableWarning>
-      <body>
+    <html lang="en" suppressContentEditableWarning className={`${sora.variable}`}>
+      <body className="font-sora">
         <Toaster position="top-center" />
         {children}
       </body>
