@@ -1,5 +1,5 @@
 
-import { AirtimeRequest, DataPlansResponse, DataRequest } from "../type"
+import { AirtimeRequest, DataPlansResponse, DataRequest, ElectricBillRequest } from "../type"
 import { BASE_URL } from "@/constants/api"
 
 interface SignupRequest {
@@ -14,6 +14,11 @@ interface AirtimeVerify {
 interface LoginRequest {
   email: string
   password: string
+}
+ interface VerifyMeterRequest {
+  serviceID: string;
+  billersCode: string;
+  type: string;
 }
  interface VerifyAccountRequest {
   account_number: string;
@@ -726,6 +731,94 @@ export class AuthAPI {
   }
 
 
+static async payElectricBill(data: ElectricBillRequest): Promise<ApiResponse> {
+  try {
+    console.log("API received data:", data)
+
+    // Validation - check for required fields
+    if (!data.amount || typeof data.amount !== 'string') {
+      throw new Error("Amount is required and must be a string")
+    }
+    
+    if (!data.billersCode) {
+      throw new Error("Meter number is required")
+    }
+    
+    if (!data.variation_code) {
+      throw new Error("Meter type is required")
+    }
+    
+    if (!data.serviceID) {
+      throw new Error("Service provider is required")
+    }
+    
+    if (!data.phone) {
+      throw new Error("Phone number is required")
+    }
+    
+    if (data.pin === null || data.pin === undefined) {
+      throw new Error("PIN is required")
+    }
+
+    // Convert pin to number if it's a string
+    const pin = typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin
+    if (isNaN(pin) || pin.toString().length !== 4) {
+      throw new Error("PIN must be 4 digits")
+    }
+
+    const token = this.getAccessToken()
+    if (!token) {
+      return {
+        success: false,
+        responseMessage: "Authentication token is required",
+      }
+    }
+
+    // Prepare payload with correct field names and types
+    const payload = {
+      serviceID: data.serviceID,
+      billersCode: data.billersCode,
+      variation_code: data.variation_code,
+      amount: data.amount, // Already a string
+      phone: data.phone,
+      pin: pin
+    }
+
+    console.log("Sending payload:", payload)
+
+    const response = await fetch(`${this.baseUrl}/api/v1/billpayment/electricity/purchase`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        const errorMessage = result.responseMessage || result.error || "Invalid request data"
+        console.error("400 Bad Request Details:", result)
+        throw new Error(errorMessage)
+      }
+      throw new Error(result.responseMessage || "Payment failed")
+    }
+
+    return {
+      success: true,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Electric payment successful",
+    }
+  } catch (error) {
+    console.error("Payment error:", error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Electric payment failed",
+    }
+  }
+}
 static async buyAirtime(data: AirtimeRequest): Promise<ApiResponse> {
     try {
       console.log("API received data:", data)
@@ -976,60 +1069,7 @@ static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
     };
   }
 }
-// static async sendMoney(data: {
-//   amount: number;
-//   account_number: string;
-//   bank_code: string;
-//   pin: string | number;
-//   narration?: string;
-// }): Promise<ApiResponse> {
-//   try {
-//     const token = this.getAccessToken();
 
-//     // Ensure all fields are included in the payload
-//     const payload = {
-//       amount: data.amount,
-//       account_number: data.account_number,
-//       bank_code: data.bank_code,
-//       pin: typeof data.pin === 'string' ? parseInt(data.pin, 10) : data.pin,
-//       ...(data.narration && { narration: data.narration }) // Only include if exists
-//     };
-
-//     console.log('Sending payload:', payload); // Debug log
-
-//     const response = await fetch(`${this.baseUrl}/api/v1/payment/transfer`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         ...(token && { Authorization: `Bearer ${token}` }),
-//       },
-//       body: JSON.stringify(payload),
-//     });
-
-//     const result = await response.json();
-
-//     if (!response.ok) {
-//       console.error('API Error:', result); // Log detailed error
-//       return {
-//         success: false,
-//         message: result.message || result.responseMessage || "Transfer failed",
-      
-//       };
-//     }
-
-//     return {
-//       success: true,
-//       data: result.data || result.responseBody,
-//       message: result.message || result.responseMessage || "Transfer successful",
-//     };
-//   } catch (error) {
-//     console.error('Network Error:', error); // Log network errors
-//     return {
-//       success: false,
-//       message: error instanceof Error ? error.message : "Network error occurred",
-//     };
-//   }
-// }
   static async createNewPassword(data: CreateNewPasswordRequest): Promise<ApiResponse> {
     try {
       const token = this.getAccessToken()
@@ -1122,6 +1162,57 @@ static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
 
       if (!response.ok) {
      
+        throw new Error(result.responseMessage || result.message || "Failed to fetch banks list")
+      }
+
+     
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        
+      }
+    } catch (error) {
+      console.error("Dashboard fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+  static async getElectricBillers(): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching dashboard data...")
+      
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/electricity/service`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("Dashboard response:", result)
+      
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
         throw new Error(result.responseMessage || result.message || "Failed to fetch banks list")
       }
 
@@ -1279,6 +1370,46 @@ static async verifyAccount(data: VerifyAccountRequest): Promise<ApiResponse> {
           message: "Session expired. Please login again.",
         };
       }
+      throw new Error(result.responseMessage || result.message || "Account verification failed");
+    }
+
+    return {
+      success: result.responseSuccessful !== false,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Account verified successfully",
+    };
+  } catch (error) {
+    console.error("Account verification error:", error);
+    console.log("Error response:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+}
+static async verifyMeterNumber(data: VerifyMeterRequest): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required",
+      };
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/v1/billpayment/electricity/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+ 
       throw new Error(result.responseMessage || result.message || "Account verification failed");
     }
 

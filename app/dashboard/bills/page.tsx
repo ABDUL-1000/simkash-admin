@@ -5,6 +5,7 @@ import AirtimeModal from "@/components/modals/airtimePurchaseModal"
 import AirtimeToCashModal from "@/components/modals/airtimeToCash"
 import DataModal from "@/components/modals/dataModal"
 import DataToCashModal from "@/components/modals/dataToCash"
+import ElectricPaymentModal from "@/components/modals/electric-payment-modal"
 
 
 
@@ -42,6 +43,13 @@ export default function BillsPage() {
       icon: "/datatocash.png",
       modalType: "datatocash",
       onClick: () => setOpenModal("datatocash"),
+      dis: "Convert your unused data to cash easily.",
+    },
+    {
+      name: "electric bill",
+      icon: "/datatocash.png",
+      modalType: "electric-bills",
+      onClick: () => setOpenModal("electric-bills"),
       dis: "Convert your unused data to cash easily.",
     },
   ]
@@ -113,7 +121,8 @@ export default function BillsPage() {
       />
       <AirtimeToCashModal isOpen={openModal === "airtimetocash"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
       <DataModal isOpen={openModal === "data"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
-      <DataToCashModal isOpen={openModal === "datatocash"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
+      <ElectricPaymentModal isOpen={openModal === "electric-bills"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
+      <DataToCashModal isOpen={openModal === ""} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
 
 
 

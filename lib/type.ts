@@ -87,6 +87,14 @@ export interface DataRequest {
   phone: string;
   pin: number;
 }
+export interface ElectricBillRequest {
+  amount: string;
+  phone: string;
+  pin: number;
+  serviceID?: string; 
+  billersCode: string;
+  variation_code: string;
+}
 export interface AirtimeRequest {
   amount: number;
   phone: string;

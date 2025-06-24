@@ -133,9 +133,7 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
 
         if (response.success && response.data?.responseBody?.[0]) {
           const networkInfo = response.data.responseBody[0]
-          setNetworkType(networkInfo.name) // Set the network name from API
-
-          // Find the network that matches this name
+          setNetworkType(networkInfo.name) // Store the network name
           const matchedNetwork = networks.find(
             (n) =>
               n.name.toLowerCase().includes(networkInfo.name.toLowerCase()) ||
