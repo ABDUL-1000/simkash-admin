@@ -3,6 +3,7 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
 import AirtimeModal from "@/components/modals/airtimePurchaseModal"
 import AirtimeToCashModal from "@/components/modals/airtimeToCash"
+import CablePaymentModal from "@/components/modals/cable-payment-modal"
 import DataModal from "@/components/modals/dataModal"
 import DataToCashModal from "@/components/modals/dataToCash"
 import ElectricPaymentModal from "@/components/modals/electric-payment-modal"
@@ -46,11 +47,18 @@ export default function BillsPage() {
       dis: "Convert your unused data to cash easily.",
     },
     {
-      name: "electric bill",
-      icon: "/datatocash.png",
+      name: "Electricity Payment",
+      icon: "/electric-icon.png",
       modalType: "electric-bills",
       onClick: () => setOpenModal("electric-bills"),
-      dis: "Convert your unused data to cash easily.",
+      dis: "Keep your lights on — pay your electricity bills instantly and securely with Simkash.",
+    },
+    {
+      name: "Cable TV Payment",
+      icon: "/tv-icon.png",
+      modalType: "cable-bills",
+      onClick: () => setOpenModal("cable-bills"),
+      dis: "Stay connected to your favorite shows — pay for DSTV, GOTV, and more in seconds.",
     },
   ]
 
@@ -123,6 +131,7 @@ export default function BillsPage() {
       <DataModal isOpen={openModal === "data"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
       <ElectricPaymentModal isOpen={openModal === "electric-bills"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
       <DataToCashModal isOpen={openModal === ""} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
+      <CablePaymentModal isOpen={openModal === "cable-bills"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
 
 
 

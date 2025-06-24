@@ -1,5 +1,5 @@
 
-import { AirtimeRequest, DataPlansResponse, DataRequest, ElectricBillRequest } from "../type"
+import { AirtimeRequest, CableBillRequest, DataPlansResponse, DataRequest, ElectricBillRequest } from "../type"
 import { BASE_URL } from "@/constants/api"
 
 interface SignupRequest {
@@ -23,6 +23,10 @@ interface LoginRequest {
  interface VerifyAccountRequest {
   account_number: string;
   bank_code: string;
+}
+ interface VerifyCableNumber {
+ serviceID: string;
+  billersCode: string;
 }
 
 interface ProfileUpdateRequest {
@@ -692,43 +696,8 @@ export class AuthAPI {
       }
     }
   }
-    static async getDataPlans(serviceID: string): Promise<ApiResponse> {
-    try {
-      const token = this.getAccessToken()
-      if (!token) {
-        return {
-          success: false,
-          message: "Authentication token is required",
-        }
-      }
 
-      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/data/plans?serviceID=${serviceID}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      })
 
-      const result: DataPlansResponse = await response.json()
-
-      if (!response.ok) {
-        throw new Error(result.responseMessage || "Failed to fetch data plans")
-      }
-
-      return {
-        success: true,
-        data: result,
-        message: result.responseMessage || "Data plans fetched successfully",
-      }
-    } catch (error) {
-      console.error("Data plans fetch error:", error)
-      return {
-        success: false,
-        message: error instanceof Error ? error.message : "Failed to fetch data plans",
-      }
-    }
-  }
 
 
 static async payElectricBill(data: ElectricBillRequest): Promise<ApiResponse> {
@@ -787,6 +756,94 @@ static async payElectricBill(data: ElectricBillRequest): Promise<ApiResponse> {
     console.log("Sending payload:", payload)
 
     const response = await fetch(`${this.baseUrl}/api/v1/billpayment/electricity/purchase`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        const errorMessage = result.responseMessage || result.error || "Invalid request data"
+        console.error("400 Bad Request Details:", result)
+        throw new Error(errorMessage)
+      }
+      throw new Error(result.responseMessage || "Payment failed")
+    }
+
+    return {
+      success: true,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Electric payment successful",
+    }
+  } catch (error) {
+    console.error("Payment error:", error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Electric payment failed",
+    }
+  }
+}
+static async payCableBill(data: CableBillRequest): Promise<ApiResponse> {
+  try {
+    console.log("API received data:", data)
+
+    // Validation - check for required fields
+    if (!data.amount || typeof data.amount !== 'string') {
+      throw new Error("Amount is required and must be a string")
+    }
+    
+    if (!data.billersCode) {
+      throw new Error("Meter number is required")
+    }
+    
+    if (!data.variation_code) {
+      throw new Error("Meter type is required")
+    }
+    
+    if (!data.serviceID) {
+      throw new Error("Service provider is required")
+    }
+    
+    if (!data.phone) {
+      throw new Error("Phone number is required")
+    }
+    
+    if (data.pin === null || data.pin === undefined) {
+      throw new Error("PIN is required")
+    }
+
+    // Convert pin to number if it's a string
+    const pin = typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin
+    if (isNaN(pin) || pin.toString().length !== 4) {
+      throw new Error("PIN must be 4 digits")
+    }
+
+    const token = this.getAccessToken()
+    if (!token) {
+      return {
+        success: false,
+        responseMessage: "Authentication token is required",
+      }
+    }
+
+    // Prepare payload with correct field names and types
+    const payload = {
+      serviceID: data.serviceID,
+      billersCode: data.billersCode,
+      variation_code: data.variation_code,
+      amount: data.amount, // Already a string
+      phone: data.phone,
+      pin: pin
+    }
+
+    console.log("Sending payload:", payload)
+
+    const response = await fetch(`${this.baseUrl}/api/v1/billpayment/cable/purchase`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1134,6 +1191,118 @@ static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
       }
     }
   }
+    static async getDataPlans(serviceID: string): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/data/plans?serviceID=${serviceID}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result: DataPlansResponse = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.responseMessage || "Failed to fetch data plans")
+      }
+
+      return {
+        success: true,
+        data: result,
+        message: result.responseMessage || "Data plans fetched successfully",
+      }
+    } catch (error) {
+      console.error("Data plans fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to fetch data plans",
+      }
+    }
+  }
+
+  static async getCableService(): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/cable/service`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result: DataPlansResponse = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.responseMessage || "Failed to fetch data plans")
+      }
+
+      return {
+        success: true,
+        data: result,
+        message: result.responseMessage || "Data plans fetched successfully",
+      }
+    } catch (error) {
+      console.error("Data plans fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to fetch data plans",
+      }
+    }
+  }
+  static async getCableVariation(serviceID: string): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/cable/variation?serviceID=${serviceID}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result: DataPlansResponse = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.responseMessage || "Failed to fetch data plans")
+      }
+
+      return {
+        success: true,
+        data: result,
+        message: result.responseMessage || "Data plans fetched successfully",
+      }
+    } catch (error) {
+      console.error("Data plans fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Failed to fetch data plans",
+      }
+    }
+  }
 
   static async getNetworkList(): Promise<ApiResponse> {
     try {
@@ -1341,6 +1510,52 @@ static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
   }
  
 
+static async verifyCableNumber(data: VerifyCableNumber): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required",
+      };
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/v1/billpayment/cable/verify`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(data),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAccessToken();
+        return {
+          success: false,
+          message: "Session expired. Please login again.",
+        };
+      }
+      throw new Error(result.responseMessage || result.message || "Account verification failed");
+    }
+
+    return {
+      success: result.responseSuccessful !== false,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Account verified successfully",
+    };
+  } catch (error) {
+    console.error("Account verification error:", error);
+    console.log("Error response:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+}
 static async verifyAccount(data: VerifyAccountRequest): Promise<ApiResponse> {
   try {
     const token = this.getAccessToken();

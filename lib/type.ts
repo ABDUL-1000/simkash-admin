@@ -87,6 +87,22 @@ export interface DataRequest {
   phone: string;
   pin: number;
 }
+export interface CableBillRequest {
+  amount: string;
+  phone: string;
+  pin: number;
+  serviceID?: string; 
+  billersCode: string;
+  variation_code: string;
+}
+export interface CableBillRequest {
+  amount: string;
+  phone: string;
+  pin: number;
+  serviceID?: string; 
+  billersCode: string;
+  variation_code: string;
+}
 export interface ElectricBillRequest {
   amount: string;
   phone: string;
