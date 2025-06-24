@@ -1228,7 +1228,55 @@ static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
       }
     }
   }
+static async getBillTransactions(params: {
+  page: number;
+  limit: number;
+  status?: string;
+  search?: string;
+}): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken()
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required",
+      }
+    }
 
+    const queryParams = new URLSearchParams({
+      page: params.page.toString(),
+      limit: params.limit.toString(),
+      ...(params.status && { status: params.status }),
+      ...(params.search && { search: params.search }),
+    })
+
+    const response = await fetch(`${this.baseUrl}/api/v1/billpayment/transactions?${queryParams}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      throw new Error(result.responseMessage || "Failed to fetch transactions")
+    }
+
+    return {
+      success: true,
+      data: result.responseBody,
+      message: result.responseMessage || "Transactions fetched successfully",
+    }
+  } catch (error) {
+    console.error("Transactions fetch error:", error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Failed to fetch transactions",
+    }
+  }
+}
   static async getCableService(): Promise<ApiResponse> {
     try {
       const token = this.getAccessToken()
