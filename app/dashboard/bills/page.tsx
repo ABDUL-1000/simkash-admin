@@ -76,7 +76,32 @@ export default function BillsPage() {
           <CardHeader>
             <CardTitle className="text-xl font-semibold">Bill Payments & Services</CardTitle>
           </CardHeader>
-          <CardContent>
+         <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4">
+              {bills.map((bill) => (
+                <button
+                  key={bill.name}
+                  onClick={bill.onClick}
+                  className="flex flex-col text-start bg-white p-6 rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+                >
+                  <div className="flex gap-3 items-start">
+                    <div className="flex items-center justify-center rounded-full h-12 w-12 bg-[#FAFAFA] border border-gray-200">
+                      <Image
+                        src={bill.icon || "/placeholder.svg?height=20&width=20"}
+                        alt={bill.name}
+                        width={20}
+                        height={20}
+                        className="text-gray-600"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-gray-800 font-medium mb-1 text-left">{bill.name}</h4>
+                      <p className="text-gray-500 text-sm text-left">{bill.dis}</p>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
 
         {bills.length > 0 && (
           <>
