@@ -43,7 +43,7 @@ export function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users from protected routes to login
   if (isProtectedRoute && !accessToken) {
-    return NextResponse.redirect(new URL("/login", request.url))
+    return NextResponse.redirect(new URL("/landingpage", request.url))
   }
 
   // Redirect authenticated users from public routes to dashboard
@@ -56,7 +56,7 @@ export function middleware(request: NextRequest) {
     if (accessToken) {
       return NextResponse.redirect(new URL("/dashboard", request.url))
     } else {
-      return NextResponse.redirect(new URL("/signup", request.url))
+      return NextResponse.redirect(new URL("/landingpage", request.url))
     }
   }
 
