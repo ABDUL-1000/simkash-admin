@@ -30,7 +30,7 @@ export default function HeroSection() {
               transition={{ delay: 0.2, duration: 0.8 }}
               className="lg:text-[50px] text-[40px] text-[#000000] font-semibold leading-tight"
             >
-              Power Your Digital Life with{" "}
+              Power Your Digital <br />Life with{" "}
               <span className="text-[#255C79] underline decoration-[#255C79] decoration-4">Simkash</span>
             </motion.h1>
 

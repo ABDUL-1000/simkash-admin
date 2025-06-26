@@ -220,7 +220,7 @@ export default function ProfileSetupPage() {
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
-
+console.log(formData, 'formdatasss')
   const handleContinueStep1 = () => {
     if (validateStep1()) {
       setCurrentStep(2)
