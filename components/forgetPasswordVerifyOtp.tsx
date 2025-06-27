@@ -9,6 +9,7 @@ import { ArrowLeft, Mail } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
 import { AuthAPI } from "@/lib/API/api";
+import { toast } from "sonner";
 
 interface FormErrors {
   otp?: string;
@@ -122,7 +123,7 @@ export default function VerifyOTPForgotPasswordPage() {
 
       if (response.success) {
         const destination = `/newpassword?email=${encodeURIComponent(email)}`;
-        setSuccessMessage(`OTP verified successfully! Redirecting...`);
+       toast.success(response.message || "OTP verified successfully!");
 
         // Redirect to new password page
         setTimeout(() => {

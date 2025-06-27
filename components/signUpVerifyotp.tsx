@@ -123,6 +123,11 @@ export default function VerifyOTPSignupPage() {
       });
 
       if (response.success) {
+
+        if (response.data?.accessToken) {
+        sessionStorage.setItem("temp_access_token", response.data.accessToken);
+        sessionStorage.setItem("user_data", JSON.stringify(response.data.user));
+      }
         const destination =
           redirectTo || `/profilesetting?email=${encodeURIComponent(email)}`;
        toast.success("OTP verified successfully! Redirecting...");
