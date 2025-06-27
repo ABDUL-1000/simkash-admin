@@ -1,4 +1,5 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
+import TransactionTable from "@/components/transactionsTable"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
 export default function TransactionsPage() {
@@ -13,6 +14,7 @@ export default function TransactionsPage() {
           </CardHeader>
           <CardContent>
             <p>View all your transaction history here.</p>
+            <TransactionTable/>
           </CardContent>
         </Card>
       </div>
