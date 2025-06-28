@@ -70,6 +70,15 @@ interface CreateNewPasswordRequest {
   new_password: string;
   confirm_password: string;
 }
+interface SimkashTransferRequest {
+  amount: number;
+  account: string;
+  pin: number;
+  narration?: string;
+  message?: string;
+  responseBody?: any;
+  responseMessage?: string;
+}
 interface TransferRequest {
   amount: number;
   account_number: string;
@@ -1055,7 +1064,107 @@ export class AuthAPI {
       };
     }
   }
-  static async sendMoney(data: TransferRequest): Promise<ApiResponse> {
+  static async sendMoneyToSimkash(data: SimkashTransferRequest): Promise<ApiResponse> {
+    try {
+      console.log("API received data:", data);
+
+      // 1. Validate input data before sending
+      if (data.amount === null || data.amount === undefined) {
+        throw new Error("Amount is required");
+      }
+
+      // Convert to number if it's a string
+      const amount =
+        typeof data.amount === "string"
+          ? Number.parseFloat(data.amount)
+          : data.amount;
+
+      if (isNaN(amount)) {
+        throw new Error("Amount must be a valid number");
+      }
+
+      if (amount <= 0) {
+        throw new Error("Amount must be positive");
+      }
+
+      // Additional validation for required fields
+      if (!data.account) {
+        throw new Error("Account number is required");
+      }
+  
+      if (data.pin === null || data.pin === undefined) {
+        throw new Error("PIN is required");
+      }
+
+      // Convert PIN to number and validate
+      const pin =
+        typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin;
+      if (isNaN(pin) || pin.toString().length !== 4) {
+        throw new Error("PIN must be 4 digits");
+      }
+
+      // 2. Get and verify token
+      const token = this.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          responseMessage: "Authentication token is required",
+        };
+      }
+
+      // 3. Prepare the payload with type safety
+      const payload = {
+        amount: amount,
+        account: data.account,
+  
+        pin: pin, 
+        ...(data.narration && { narration: data.narration }),
+      };
+
+      console.log("Sending payload:", payload);
+
+      // 4. Make the API call
+      const response = await fetch(`${this.baseUrl}/api/v1/payment/transfer/simkash`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // 5. Handle response
+      const result = await response.json();
+
+      console.log("API Response Status:", response.status);
+      console.log("API Response Body:", result);
+
+      if (!response.ok) {
+        // For 400 errors, provide more specific error information
+        if (response.status === 400) {
+          const errorMessage =
+            result.responseMessage || result.error || "Invalid request data";
+          console.error("400 Bad Request Details:", result);
+          throw new Error(errorMessage);
+        }
+
+        throw new Error(result.responseMessage || "Payment failed");
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Payment successful",
+      };
+    } catch (error) {
+      console.error("Payment error:", error);
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Payment failed",
+      };
+    }
+  }
+  static async sendMoneyToOtherBank(data: TransferRequest): Promise<ApiResponse> {
     try {
       console.log("API received data:", data);
 
@@ -1862,6 +1971,70 @@ export class AuthAPI {
       };
     }
   }
+static async verifySimkashAccount(account: string): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required",
+      };
+    }
+
+    // Ensure account is properly formatted
+    const formattedAccount = account.startsWith('0') ? account.substring(1) : account;
+    
+    const requestBody = {
+      account: formattedAccount  // Send the properly formatted account
+    };
+
+    console.log("Sending verification request:", requestBody); // Debug log
+
+    const response = await fetch(
+      `${this.baseUrl}/api/v1/payment/verify/simkash`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(requestBody),
+      }
+    );
+
+    console.log("Verification response status:", response.status); // Debug log
+
+    const result = await response.json();
+    console.log("Verification response data:", result); // Debug log
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAccessToken();
+        return {
+          success: false,
+          message: "Session expired. Please login again.",
+        };
+      }
+      throw new Error(
+        result.responseMessage ||
+          result.message ||
+          "Account verification failed"
+      );
+    }
+
+    return {
+      success: result.responseSuccessful !== false,
+      data: result.responseBody || result,
+      message: result.responseMessage || "Account verified successfully",
+    };
+  } catch (error) {
+    console.error("Account verification error:", error);
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+}
   static async verifyMeterNumber(
     data: VerifyMeterRequest
   ): Promise<ApiResponse> {

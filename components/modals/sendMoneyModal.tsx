@@ -44,7 +44,7 @@ type StepOneForm = z.infer<typeof stepOneSchema>
 type StepTwoForm = z.infer<typeof stepTwoSchema>
 type StepFourForm = z.infer<typeof stepFourSchema>
 
-const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSuccess }) => {
+const SendMoneyToOtherBankModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState(1)
   const [saveBeneficiary, setSaveBeneficiary] = useState(false)
   const [beneficiaryName, setBeneficiaryName] = useState("")
@@ -300,7 +300,7 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
 
       console.log("Final Transfer data being sent:", formData)
 
-      const response = await AuthAPI.sendMoney(formData)
+      const response = await AuthAPI.sendMoneyToOtherBank(formData)
       console.log("Transfer response:", response)
 
       if (response.success) {
@@ -634,4 +634,4 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
   )
 }
 
-export default SendMoneyModal
+export default SendMoneyToOtherBankModal

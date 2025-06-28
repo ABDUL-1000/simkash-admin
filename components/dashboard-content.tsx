@@ -1,98 +1,116 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Card, CardContent } from "./ui/card"
-import Image from "next/image"
-import QuickActions from "./quickAction"
-import TopUpModal from "./modals/topUpModal"
-import SendModal from "./modals/sendMoneyModal"
-import WithdrawModal from "./modals/withdrawModal"
-import { Skeleton } from "./ui/skeleton"
-import { AuthAPI } from "@/lib/API/api"
-import { Eye, EyeOff } from "lucide-react"
-import { useDashboardStore } from "@/app/store/zustandstore/useStore"
-import { set } from "zod"
+import { useState, useEffect } from "react";
+import { Card, CardContent } from "./ui/card";
+import Image from "next/image";
+import QuickActions from "./quickAction";
+import TopUpModal from "./modals/topUpModal";
+import WithdrawModal from "./modals/withdrawModal";
+import { Skeleton } from "./ui/skeleton";
+import { AuthAPI } from "@/lib/API/api";
+import { Eye, EyeOff } from "lucide-react";
+import { useDashboardStore } from "@/app/store/zustandstore/useStore";
+import { set } from "zod";
+import SendMoneyToOtherBankModal from "./modals/sendMoneyModal";
+import SendMoneyToSimkashModal from "./modals/sendToSimkashModal";
 
 interface Transaction {
-  id: number
-  amount: string
-  transaction_type: string
-  description: string
-  status: "success" | "Pending" | "Failed"
-  createdAt: string
+  id: number;
+  amount: string;
+  transaction_type: string;
+  description: string;
+  status: "success" | "Pending" | "Failed";
+  createdAt: string;
 }
 
 interface DashboardData {
-  date: string
+  date: string;
   wallet: {
-    balance: string
-  }
-  transaction: Transaction[]
+    balance: string;
+  };
+  transaction: Transaction[];
 }
 
 export function DashboardContent() {
-  const [openModal, setOpenModal] = useState<string | null>(null)
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState("")
-  const [showBalance, setShowBalance] = useState(false)
-   const setDashboardDatas = useDashboardStore((state) => state.setDashboardData)
+  const [openModal, setOpenModal] = useState<string | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showBalance, setShowBalance] = useState(false);
+  const setDashboardDatas = useDashboardStore(
+    (state) => state.setDashboardData
+  );
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        setLoading(true)
-        const response = await AuthAPI.getDashboardData()
+        setLoading(true);
+        const response = await AuthAPI.getDashboardData();
 
         if (response.success) {
-          const data = response.data
-          setDashboardData(data)
-          setDashboardDatas(data)
-          console.log("✅ Set dashboard data:", response.data)
+          const data = response.data;
+          setDashboardData(data);
+          setDashboardDatas(data);
+          console.log("✅ Set dashboard data:", response.data);
         } else {
-          setError(response.message || "Failed to load dashboard data")
+          setError(response.message || "Failed to load dashboard data");
         }
       } catch (err) {
-        setError("An unexpected error occurred")
-        console.error("Dashboard data fetch error:", err)
+        setError("An unexpected error occurred");
+        console.error("Dashboard data fetch error:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchDashboardData()
-  }, [])
+    fetchDashboardData();
+  }, []);
   const toggleBalanceVisibility = () => {
-    setShowBalance(!showBalance)
-  }
+    setShowBalance(!showBalance);
+  };
 
   const quickActions = [
-    { icon: '/Vector1.png', label: 'Top Up', onClick: () => setOpenModal('topup') },
-    { icon: '/Vector.png', label: 'Send', onClick: () => setOpenModal('send') },
-    { icon: '/Vector3.png', label: 'Withdraw', onClick: () => setOpenModal('withdraw') },
-    { icon: '/Vector4.png', label: 'Add SIM', onClick: () => setOpenModal('addsim') },
-    { icon: '/icon5.png', label: 'More', onClick: () => setOpenModal('more') },
-  ]
+    {
+      icon: "/Vector1.png",
+      label: "Top Up",
+      onClick: () => setOpenModal("topup"),
+    },
+    { icon: "/Vector.png", label: "Send to simkash", onClick: () => setOpenModal("send-to-simkash") },
+    { icon: "/Vector.png", label: "Send to other bank", onClick: () => setOpenModal("send") },
+    {
+      icon: "/Vector3.png",
+      label: "Withdraw",
+      onClick: () => setOpenModal("withdraw"),
+    },
+    {
+      icon: "/Vector4.png",
+      label: "Add SIM",
+      onClick: () => setOpenModal("addsim"),
+    },
+    { icon: "/icon5.png", label: "More", onClick: () => setOpenModal("more") },
+  ];
 
-const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true // This will show AM/PM
-  });
-};
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true, // This will show AM/PM
+    });
+  };
 
   const formatAmount = (amount: string) => {
-    const num = parseFloat(amount)
+    const num = parseFloat(amount);
     return new Intl.NumberFormat("en-NG", {
       style: "currency",
-      currency: "NGN"
-    }).format(num)
-  }
+      currency: "NGN",
+    }).format(num);
+  };
 
   if (loading) {
     return (
@@ -137,21 +155,21 @@ const formatDate = (dateString: string) => {
           </CardContent>
         </Card>
       </div>
-    )
+    );
   }
 
   if (error) {
     return (
       <div className="p-6 text-center text-red-500">
         {error}
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="mt-4 px-4 py-2 bg-[#24C0FF] text-white rounded-lg"
         >
           Retry
         </button>
       </div>
-    )
+    );
   }
 
   if (!dashboardData) {
@@ -159,7 +177,7 @@ const formatDate = (dateString: string) => {
       <div className="p-6 text-center text-gray-500">
         No dashboard data available
       </div>
-    )
+    );
   }
 
   return (
@@ -168,20 +186,20 @@ const formatDate = (dateString: string) => {
       <Card className="bg-white animate-fade-in">
         <CardContent className="lg:pt-6 pt-1">
           <div className="lg:text-center text-start">
-            <h3 className="lg:text-lg text-sm font-medium text-gray-600 mb-2">Wallet Balance</h3>
+            <h3 className="lg:text-lg text-sm font-medium text-gray-600 mb-2">
+              Wallet Balance
+            </h3>
             <div className="flex items-center lg:justify-center">
               <span className="lg:text-5xl text-2xl font-bold">
-               
                 {showBalance ? (
                   <span className="text-black">
                     {formatAmount(dashboardData.wallet.balance)}.
-                  
                   </span>
                 ) : (
                   <span className="text-black">••••</span>
                 )}
               </span>
-              <button 
+              <button
                 className="ml-4 text-gray-500 hover:text-gray-700"
                 onClick={toggleBalanceVisibility}
                 aria-label={showBalance ? "Hide balance" : "Show balance"}
@@ -203,9 +221,22 @@ const formatDate = (dateString: string) => {
       </div>
 
       {/* Modals */}
-      <TopUpModal open={openModal === 'topup'} onClose={() => setOpenModal(null)} />
-      <SendModal isOpen={openModal === 'send'} onClose={() => setOpenModal(null)} />
-      <WithdrawModal isOpen={openModal === 'withdraw'} onClose={() => setOpenModal(null)} />
+      <TopUpModal
+        open={openModal === "topup"}
+        onClose={() => setOpenModal(null)}
+      />
+      <SendMoneyToSimkashModal
+        isOpen={openModal === "send-to-simkash"}
+        onClose={() => setOpenModal(null)}
+      />
+      <SendMoneyToOtherBankModal
+        isOpen={openModal === "send"}
+        onClose={() => setOpenModal(null)}
+      />
+      <WithdrawModal
+        isOpen={openModal === "withdraw"}
+        onClose={() => setOpenModal(null)}
+      />
 
       {/* Transactions */}
       <div className="animate-fade-in">
@@ -221,9 +252,14 @@ const formatDate = (dateString: string) => {
 
             {dashboardData.transaction.length > 0 ? (
               dashboardData.transaction.map((transaction) => (
-                <div key={transaction.id} className="grid grid-cols-5 text-sm border-b last:border-0">
+                <div
+                  key={transaction.id}
+                  className="grid grid-cols-5 text-sm border-b last:border-0"
+                >
                   <div className="p-4">{formatDate(transaction.createdAt)}</div>
-                  <div className="p-4 capitalize">{transaction.transaction_type}</div>
+                  <div className="p-4 capitalize">
+                    {transaction.transaction_type}
+                  </div>
                   <div className="p-4">{transaction.description}</div>
                   <div className="p-4">{formatAmount(transaction.amount)}</div>
                   <div className="p-4">
@@ -232,8 +268,8 @@ const formatDate = (dateString: string) => {
                         transaction.status === "success"
                           ? "bg-green-100 text-green-800"
                           : transaction.status === "Pending"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-red-100 text-red-800"
+                          ? "bg-yellow-100 text-yellow-800"
+                          : "bg-red-100 text-red-800"
                       }`}
                     >
                       {transaction.status}
@@ -244,17 +280,20 @@ const formatDate = (dateString: string) => {
             ) : (
               <div className="py-16 flex flex-col items-center justify-center text-center">
                 <div className="mb-4">
-                  <Image 
-                    src="/Vector6.png" 
-                    alt="Empty transactions" 
-                    width={100} 
-                    height={100} 
+                  <Image
+                    src="/Vector6.png"
+                    alt="Empty transactions"
+                    width={100}
+                    height={100}
                     priority
                   />
                 </div>
-                <h4 className="text-gray-500 font-medium mb-1">You haven't made any transactions yet.</h4>
+                <h4 className="text-gray-500 font-medium mb-1">
+                  You haven't made any transactions yet.
+                </h4>
                 <p className="text-gray-400 text-sm">
-                  Once you start using Simkash, your activities will show up here.
+                  Once you start using Simkash, your activities will show up
+                  here.
                 </p>
               </div>
             )}
@@ -262,5 +301,5 @@ const formatDate = (dateString: string) => {
         </Card>
       </div>
     </div>
-  )
+  );
 }
