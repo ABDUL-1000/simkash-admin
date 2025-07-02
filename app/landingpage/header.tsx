@@ -82,7 +82,9 @@ export default function Header() {
                 </a>
               ))}
               <Button variant="outline" className="w-full bg-[#132939]  text-[#FFFFFF]  rounded-full  hover:bg-gray-50">
-                Sign In
+               <Link href="/login">
+                <span> Sign In</span>
+              </Link>
               </Button>
             </div>
           </motion.nav>
