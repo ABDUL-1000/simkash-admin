@@ -1,40 +1,43 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Search } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { useDashboardStore } from "@/app/store/zustandstore/useStore"
-import { NotificationsModal } from "../modals/notificationModal"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Search } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { useDashboardStore } from "@/app/store/zustandstore/useStore";
+import { NotificationsModal } from "../modals/notificationModal";
 
 interface NavbarProps {
-  username?: string
-  email?: string
+  username?: string;
+  email?: string;
 }
 
 export function Navbar({ username, email }: NavbarProps) {
-  const [searchQuery, setSearchQuery] = useState("")
-  const userProfile = useDashboardStore((state) => state.userProfile)
+  const [searchQuery, setSearchQuery] = useState("");
+  const userProfile = useDashboardStore((state) => state.userProfile);
 
-  const currentTime = new Date()
-  const hours = currentTime.getHours()
-  let greeting = "Good Morning"
+  const currentTime = new Date();
+  const hours = currentTime.getHours();
+  let greeting = "Good Morning";
   if (hours >= 12 && hours < 17) {
-    greeting = "Good Afternoon"
+    greeting = "Good Afternoon";
   } else if (hours >= 17) {
-    greeting = "Good Evening"
+    greeting = "Good Evening";
   }
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="flex h-16 items-center justify-between px-4 md:px-6">
         {/* Mobile Logo - Left aligned */}
-        <Link href="/dashboard" className="flex items-center justify-center gap-2 font-semibold lg:hidden">
+        <Link
+          href="/dashboard"
+          className="flex items-center justify-center gap-2 font-semibold lg:hidden"
+        >
           <Image src="/simcard.png" alt="Simkash Logo" width={24} height={24} />
           <span className="text-lg font-bold text-slate-800">simkash</span>
         </Link>
-         
+
         {/* Desktop Greeting */}
         <div className="hidden lg:block">
           <h1 className="text-xl font-medium">
@@ -43,13 +46,9 @@ export function Navbar({ username, email }: NavbarProps) {
         </div>
 
         {/* Right Side Actions */}
-      
-       
+
         <div className="flex  items-center gap-2">
-          
-           
           <div className="relative hidden sm:block">
-           
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
@@ -60,16 +59,12 @@ export function Navbar({ username, email }: NavbarProps) {
             />
           </div>
           <div className=" lg:hidden ">
-           
             <NotificationsModal />
-           
           </div>
 
-        
-            <NotificationsModal />
-
+          <NotificationsModal />
         </div>
       </div>
     </header>
-  )
+  );
 }

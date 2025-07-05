@@ -106,7 +106,7 @@ export function DashboardContent() {
       year: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-      hour12: true, // This will show AM/PM
+      hour12: true, 
     });
   };
 
@@ -199,7 +199,7 @@ export function DashboardContent() {
               <span className="lg:text-5xl text-2xl font-bold">
                 {showBalance ? (
                   <span className="text-black">
-                    {formatAmount(dashboardData.wallet.balance)}.
+                    {formatAmount(dashboardData.wallet.balance)}
                   </span>
                 ) : (
                   <span className="text-black">••••</span>
@@ -220,6 +220,8 @@ export function DashboardContent() {
           </div>
         </CardContent>
       </Card>
+
+
 
       {/* Quick Actions */}
       <div className="bg-white p-4 animate-fade-in">
