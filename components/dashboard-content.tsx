@@ -11,8 +11,9 @@ import { AuthAPI } from "@/lib/API/api";
 import { Eye, EyeOff } from "lucide-react";
 import { useDashboardStore } from "@/app/store/zustandstore/useStore";
 import { set } from "zod";
-import SendMoneyToOtherBankModal from "./modals/sendMoneyModal";
+import SendMoneyToOtherBankModal from "./modals/sendMoneyToOtherBanksModal";
 import SendMoneyToSimkashModal from "./modals/sendToSimkashModal";
+import { SendMoneySelectionModal } from "./modals/sendMoneySelectMoodal";
 
 interface Transaction {
   id: number;
@@ -77,8 +78,13 @@ export function DashboardContent() {
       label: "Top Up",
       onClick: () => setOpenModal("topup"),
     },
-    { icon: "/Vector.png", label: "Send to simkash", onClick: () => setOpenModal("send-to-simkash") },
-    { icon: "/Vector.png", label: "Send to other bank", onClick: () => setOpenModal("send") },
+    // { icon: "/Vector.png", label: "Send to simkash", onClick: () => setOpenModal("send-to-simkash") },
+    // { icon: "/Vector.png", label: "Send to other bank", onClick: () => setOpenModal("send") },
+    {
+      icon: "/Vector.png",
+      label: "Send Money",
+      onClick: () => setOpenModal("send-money"),
+    },
     {
       icon: "/Vector3.png",
       label: "Withdraw",
@@ -229,8 +235,19 @@ export function DashboardContent() {
         isOpen={openModal === "send-to-simkash"}
         onClose={() => setOpenModal(null)}
       />
+      <SendMoneySelectionModal
+        isOpen={openModal === "send-money"}
+        onClose={() => setOpenModal(null)}
+        onSelectSimkash={() => {
+          setOpenModal("send-to-simkash");
+        }}
+        onSelectOtherBank={() => {
+          setOpenModal("send-to-other");
+        }}
+      />
+
       <SendMoneyToOtherBankModal
-        isOpen={openModal === "send"}
+        isOpen={openModal === "send-to-other"}
         onClose={() => setOpenModal(null)}
       />
       <WithdrawModal

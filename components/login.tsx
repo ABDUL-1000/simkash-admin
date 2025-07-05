@@ -140,7 +140,7 @@ export default function LoginPage() {
       </div>
 
       {/* Right Side */}
-      <div className="w-full md:w-1/2 flex flex-col relative bg-gray-100 p-6">
+      <div className="w-full md:w-1/2 h-screen flex flex-col relative bg-gray-100 p-6">
         {/* Mobile header */}
         <div className="flex items-center lg:hidden justify-between">
           <div className="flex lg:h-6 lg:w-6 items-center gap-1">
