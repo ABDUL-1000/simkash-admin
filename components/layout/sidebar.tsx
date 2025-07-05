@@ -10,6 +10,7 @@ import { useState } from "react"
 import { AuthAPI } from "@/lib/API/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
 import { useDashboardStore } from "@/app/store/zustandstore/useStore"
+import { NotificationsModal } from "../modals/notificationModal"
 
 
 interface SidebarProps {
@@ -70,7 +71,10 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
 
   return (
     <>
+    
       {/* Mobile menu button - moved to the right */}
+
+       
       <Button
         variant="outline"
         size="icon"
@@ -79,6 +83,8 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       >
         {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
+
+     
 
       <div
         className={cn(

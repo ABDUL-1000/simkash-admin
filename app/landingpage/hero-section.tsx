@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function HeroSection() {
   const trustedLogos = [
@@ -48,12 +49,15 @@ export default function HeroSection() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
+              <Link href="/signup">
               <Button
+              
                 size="lg"
                 className="bg-[#132939]  text-white px-8 py-2 text-lg rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
               >
                 Get Started
               </Button>
+              </Link>
             </motion.div>
 
             <motion.div

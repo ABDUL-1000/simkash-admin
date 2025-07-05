@@ -1443,6 +1443,63 @@ export class AuthAPI {
       };
     }
   }
+  static async getAllNotifications(params: {
+    page: number;
+    limit: number;
+    status?: string;
+    search?: string;
+  }): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken();
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        };
+      }
+
+      const queryParams = new URLSearchParams({
+        page: params.page.toString(),
+        limit: params.limit.toString(),
+        ...(params.status && { status: params.status }),
+        ...(params.search && { search: params.search }),
+      });
+
+      const response = await fetch(
+        `${this.baseUrl}/api/v1/user/notifications?${queryParams}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.responseMessage || "Failed to fetch notifications"
+        );
+      }
+
+      return {
+        success: true,
+        data: result.responseBody,
+        message: result.responseMessage || "Notifications fetched successfully",
+      };
+    } catch (error) {
+      console.error("Notifications fetch error:", error);
+      return {
+        success: false,
+        message:
+          error instanceof Error
+            ? error.message
+            : "Failed to fetch Notifications",
+      };
+    }
+  }
   static async getBillTransactions(params: {
     page: number;
     limit: number;

@@ -60,7 +60,7 @@ export function SendMoneySelectionModal({
           >
             <div className="bg-gray-100 p-2 rounded-full shrink-0">
               <Image 
-                src="/bankicon.png"
+                src="/bank.png"
                 alt="Bank Transfer" 
                 width={20} 
                 height={20}

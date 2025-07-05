@@ -3,18 +3,15 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
-import { Bell, Search} from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Search } from "lucide-react"
 import { Input } from "@/components/ui/input"
-
-
 import { useDashboardStore } from "@/app/store/zustandstore/useStore"
+import { NotificationsModal } from "../modals/notificationModal"
 
 interface NavbarProps {
   username?: string
   email?: string
 }
-
 
 export function Navbar({ username, email }: NavbarProps) {
   const [searchQuery, setSearchQuery] = useState("")
@@ -22,15 +19,12 @@ export function Navbar({ username, email }: NavbarProps) {
 
   const currentTime = new Date()
   const hours = currentTime.getHours()
-
   let greeting = "Good Morning"
   if (hours >= 12 && hours < 17) {
     greeting = "Good Afternoon"
   } else if (hours >= 17) {
     greeting = "Good Evening"
   }
-
-
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -40,7 +34,7 @@ export function Navbar({ username, email }: NavbarProps) {
           <Image src="/simcard.png" alt="Simkash Logo" width={24} height={24} />
           <span className="text-lg font-bold text-slate-800">simkash</span>
         </Link>
-
+         
         {/* Desktop Greeting */}
         <div className="hidden lg:block">
           <h1 className="text-xl font-medium">
@@ -49,9 +43,13 @@ export function Navbar({ username, email }: NavbarProps) {
         </div>
 
         {/* Right Side Actions */}
-        <div className="flex items-center gap-2">
-          {/* Search - Hidden on small screens */}
+      
+       
+        <div className="flex  items-center gap-2">
+          
+           
           <div className="relative hidden sm:block">
+           
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
             <Input
               type="text"
@@ -61,15 +59,15 @@ export function Navbar({ username, email }: NavbarProps) {
               className="pl-10 h-9 w-48 md:w-64 rounded-full bg-gray-100 border-none"
             />
           </div>
+          <div className=" lg:hidden ">
+           
+            <NotificationsModal />
+           
+          </div>
 
-          {/* Notifications */}
-          <Button variant="ghost" size="icon" className="relative rounded-full">
-            <Bell className="h-5 w-5 text-gray-600" />
-            <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
-          </Button>
+        
+            <NotificationsModal />
 
-          {/* User Dropdown - Only visible on desktop */}
-          
         </div>
       </div>
     </header>
