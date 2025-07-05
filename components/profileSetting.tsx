@@ -387,7 +387,7 @@ export default function ProfileSetupPage() {
       </div>
 
       {/* Right Side */}
-      <div className="lg:w-1/2  bg-gray-100">
+      <div className="lg:w-1/2  h-screen bg-gray-100">
         <div className="flex-col relative p-2">
           <div className="absolute hidden lg:block top-[-15] right-10 text-sm text-black">
             Need to start over?{" "}

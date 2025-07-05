@@ -215,7 +215,7 @@ export default function VerifyOTPSignupPage() {
       </div>
 
       {/* Right Side */}
-      <div className="w-full md:w-1/2 flex flex-col relative bg-gray-100 p-6">
+      <div className="w-full md:w-1/2 h-screen flex flex-col relative bg-gray-100 p-6">
         {/* Top Right back link */}
         <div className="absolute top-4 hidden lg:block right-10 text-sm text-black">
           <Link
