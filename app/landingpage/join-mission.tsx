@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { useInView } from "framer-motion";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 
 export default function JoinMissionSection() {
@@ -142,17 +143,20 @@ export default function JoinMissionSection() {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                       >
+                        <Link href='cordinator-registration'>
                         <Button
                           variant="secondary"
+
                           size="lg"
                           className="bg-white text-gray-900 hover:bg-gray-100 px-8 py-4 text-lg rounded-full font-semibold shadow-lg"
                         >
                           {role.buttonText}
                         </Button>
+                        </Link>
                       </motion.div>
                     </ul>
                   </div>
-                  <div className="">{role.image}</div>
+                  <div className="hidden lg:block">{role.image}</div>
                 </div>
               </div>
             </motion.div>

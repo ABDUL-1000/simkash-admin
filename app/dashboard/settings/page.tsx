@@ -1,20 +1,19 @@
 import { DashboardLayout } from "@/components/dashboard-layout"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { SettingsTabs } from "./settingsTabs"
+
 
 export default function SettingsPage() {
   return (
     <DashboardLayout>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-6">Settings</h1>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Settings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p>Manage your account settings and preferences.</p>
-          </CardContent>
-        </Card>
+      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+        <div className="flex items-center justify-between space-y-2">
+         
+          <div className="flex items-center space-x-2">
+      
+          
+          </div>
+        </div>
+        <SettingsTabs />
       </div>
     </DashboardLayout>
   )

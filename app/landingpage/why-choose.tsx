@@ -120,9 +120,9 @@ export default function WhyChooseSection() {
               <motion.div
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 transition={{ duration: 0.3 }}
-                className={` rounded-full h-30 w-50 p-4 bg-[#F8F9FA] flex items-center justify-center`}
+                className={` rounded-full h-30 w-50 hidden  p-4 bg-[#F8F9FA] lg:flex items-center justify-center`}
               >
-                <span className="">{feature.icon}</span>
+                <span className="hidden lg:block">{feature.icon}</span>
               </motion.div>
 
               <h3 className="text-[#000000] lg:text-[30px] flex flex-col text-[14px]  mb-4">{feature.title} <span className="text-[#565C69] lg:text-[18px]">{feature.description}</span></h3>

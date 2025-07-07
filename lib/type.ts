@@ -21,7 +21,34 @@ export interface User {
   createdAt: string;
   updatedAt: string;
 }
+export interface PasswordChangeResponse {
+  responseSuccessful: boolean
+  responseMessage: string
+  responseBody: User
+}
+export interface CoordinatorRegistrationRequest {
+  fullname: string
+  email: string
+  phone: string
+  gender: string
+  dob: string
+  country: string
+  state: string
+  lga: string
+  address: string
+  reason: string
+  idCard: string
+}
+export interface CoordinatorRegistrationResponse {
+  responseSuccessful: boolean
+  responseMessage: string
+}
 
+export interface PasswordChangeRequest {
+  old_password: string
+  new_password: string
+  confirm_new_password: string
+}
 export interface UserProfile {
   id: number;
   user_id: number;

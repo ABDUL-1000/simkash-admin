@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Skeleton } from "@/components/ui/skeleton"
 import { AuthAPI } from "@/lib/API/api"
+import Image from "next/image"
 
 interface Notification {
   id: number
@@ -48,10 +49,18 @@ function NotificationItem({ notification }: { notification: Notification }) {
 
   const getNotificationIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "transaction":
-        return "💳"
+      case "Transaction":
+        return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
       case "airtime":
-        return "📱"
+           return <Image src="/telephone-outbound.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+      case "data":
+           return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+      case "bills":
+           return <Image src="/lightning.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+      case "TV Subscription":
+           return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+      case "TV Subscription":
+           return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
       default:
         return "🔔"
     }

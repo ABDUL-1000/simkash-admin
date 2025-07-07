@@ -1,9 +1,13 @@
 import {
   AirtimeRequest,
   CableBillRequest,
+  CoordinatorRegistrationRequest,
+  CoordinatorRegistrationResponse,
   DataPlansResponse,
   DataRequest,
   ElectricBillRequest,
+  PasswordChangeRequest,
+  PasswordChangeResponse,
 } from "../type";
 import { BASE_URL } from "@/constants/api";
 
@@ -381,7 +385,7 @@ export class AuthAPI {
 
   static async login(data: LoginRequest): Promise<ApiResponse> {
     try {
-      console.log("Attempting login...");
+    
       const response = await fetch(`${this.baseUrl}/api/v1/auth/login`, {
         method: "POST",
         headers: {
@@ -585,6 +589,118 @@ export class AuthAPI {
     }
   }
 
+    static async changePassword(data: PasswordChangeRequest): Promise<ApiResponse> {
+    try {
+      const token = this.getAccessToken()
+      console.log("Token available:", !!token)
+
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      // Validate required fields
+      if (!data.old_password) {
+        return {
+          success: false,
+          message: "Old password is required",
+        }
+      }
+
+      if (!data.new_password) {
+        return {
+          success: false,
+          message: "New password is required",
+        }
+      }
+
+      if (!data.confirm_new_password) {
+        return {
+          success: false,
+          message: "Password confirmation is required",
+        }
+      }
+
+      if (data.new_password !== data.confirm_new_password) {
+        return {
+          success: false,
+          message: "New passwords do not match",
+        }
+      }
+
+      if (data.new_password.length < 6) {
+        return {
+          success: false,
+          message: "New password must be at least 6 characters long",
+        }
+      }
+
+      // Prepare the request data
+      const passwordData = {
+        old_password: String(data.old_password).trim(),
+        new_password: String(data.new_password).trim(),
+        confirm_new_password: String(data.confirm_new_password).trim(),
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/v1/user/password`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(passwordData),
+      })
+
+ 
+
+      let result: PasswordChangeResponse
+      try {
+        result = await response.json()
+  
+      } catch (parseError) {
+       
+      
+        return {
+          success: false,
+          message: `Server returned ${response.status}: ${response.statusText}. Raw response:`,
+        }
+      }
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          return {
+            success: false,
+            message: result.responseMessage || "Invalid request data. Please check your input.",
+          }
+        } else if (response.status === 403) {
+          return {
+            success: false,
+            message: "Access denied. You don't have permission to change password.",
+          }
+        } else {
+          return {
+            success: false,
+            message: result.responseMessage || `Server error: ${response.status}`,
+          }
+        }
+      }
+
+      return {
+        success: result.responseSuccessful !== false,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Password changed successfully",
+      }
+    } catch (error) {
+      console.error("Password change error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+
   static async logout(): Promise<void> {
     try {
       const token = this.getAccessToken();
@@ -772,6 +888,131 @@ export class AuthAPI {
         message:
           error instanceof Error ? error.message : "Data purchase failed",
       };
+    }
+  }
+
+    static async registerCoordinator(data: CoordinatorRegistrationRequest): Promise<ApiResponse> {
+    try {
+      // Validate required fields
+      const requiredFields = [
+        "fullname",
+        "email",
+        "phone",
+        "gender",
+        "dob",
+        "country",
+        "state",
+        "lga",
+        "address",
+        "reason",
+        "idCard",
+      ]
+
+      for (const field of requiredFields) {
+        if (!data[field as keyof CoordinatorRegistrationRequest]) {
+          return {
+            success: false,
+            message: `${field.charAt(0).toUpperCase() + field.slice(1)} is required`,
+          }
+        }
+      }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      if (!emailRegex.test(data.email)) {
+        return {
+          success: false,
+          message: "Please enter a valid email address",
+        }
+      }
+
+      // Phone validation (remove non-digits and validate)
+      const cleanPhone = data.phone.replace(/\D/g, "")
+      if (cleanPhone.length < 10) {
+        return {
+          success: false,
+          message: "Please enter a valid phone number",
+        }
+      }
+
+      // Prepare the request data
+      const registrationData = {
+        fullname: String(data.fullname).trim(),
+        email: String(data.email).trim().toLowerCase(),
+        phone: cleanPhone,
+        gender: String(data.gender).toLowerCase(),
+        dob: String(data.dob).trim(),
+        country: String(data.country).trim(),
+        state: String(data.state).trim(),
+        lga: String(data.lga).trim(),
+        address: String(data.address).trim(),
+        reason: String(data.reason).trim(),
+        idCard: String(data.idCard).trim(),
+      }
+
+      console.log("Sending registration data:", registrationData)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/agent/auth/register`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+     
+        },
+        body: JSON.stringify(registrationData),
+      })
+
+      console.log("Response status:", response.status)
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+
+      let result: CoordinatorRegistrationResponse
+      try {
+        result = await response.json()
+        console.log("Response body:", result)
+      } catch (parseError) {
+        console.error("Failed to parse response JSON:", parseError)
+        const textResponse = await response.text()
+        console.log("Raw response:", textResponse)
+        return {
+          success: false,
+          message: `Server returned ${response.status}: ${response.statusText}. Raw response: ${textResponse}`,
+        }
+      }
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          return {
+            success: false,
+            message: result.responseMessage || "Invalid request data. Please check your input.",
+          }
+        } else if (response.status === 409) {
+          return {
+            success: false,
+            message: "An account with this email or phone number already exists.",
+          }
+        } else if (response.status === 422) {
+          return {
+            success: false,
+            message: result.responseMessage || "Validation error. Please check your input.",
+          }
+        } else {
+          return {
+            success: false,
+            message: result.responseMessage || `Server error: ${response.status}`,
+          }
+        }
+      }
+
+      return {
+        success: result.responseSuccessful !== false,
+        data: result,
+        message: result.responseMessage || "Registration successful!",
+      }
+    } catch (error) {
+      console.error("Coordinator registration error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
     }
   }
 

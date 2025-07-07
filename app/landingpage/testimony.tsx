@@ -84,9 +84,9 @@ export default function TestimonialsSection() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={prevTestimonial}
-            className="absolute left-0 top-1/2 -translate-y-1/3 -translate-x-20 w-12 h-12 bg-[#F8F9FA] rounded-full p-2 flex items-center justify-center hover:shadow-xl transition-shadow z-10"
+            className="absolute  hidden left-0 top-1/2 -translate-y-1/3 -translate-x-20 w-12 h-12 bg-[#F8F9FA] rounded-full p-2 lg:flex items-center justify-center hover:shadow-xl transition-shadow z-10"
           >
- <Image src="/testimonialArrow.png" alt="arrow" width={80} height={50} />,         
+ <Image src="/testimonialArrow.png" alt="arrow" width={80} height={50} className="hidden lg:block"/>,         
   </motion.button>
 
           {/* Testimonial Card */}
@@ -149,9 +149,9 @@ export default function TestimonialsSection() {
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.9 }}
             onClick={nextTestimonial}
-            className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-20 w-12 h-12 bg-[#F8F9FA] rounded-full p-2 flex items-center justify-center hover:shadow-xl transition-shadow z-10"
+            className="absolute hidden right-0 top-1/2 -translate-y-1/2 translate-x-20 w-12 h-12 bg-[#F8F9FA] rounded-full p-2 lg:flex items-center justify-center hover:shadow-xl transition-shadow z-10"
           >
-           <Image src="/testimonialArrowRight.png" alt="arrow" width={80} height={50} />,
+           <Image src="/testimonialArrowRight.png" alt="arrow" width={80} height={50} className="hidden lg:block"/>,
           </motion.button>
         </div>
       </div>

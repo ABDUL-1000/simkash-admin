@@ -2,7 +2,6 @@
 
 import { DashboardData, Transaction, UserDetails, UserProfile, Wallet } from '@/lib/type';
 import { create } from 'zustand'
-
 import { persist } from 'zustand/middleware'
 
 interface DashboardStore {
