@@ -337,7 +337,7 @@ export function StateCoordinatorForm() {
             </div>
 
             {/* Submit Button */}
-            <Button type="submit" className="w-full bg-blue-500 hover:bg-blue-600 text-white py-3" disabled={isLoading}>
+            <Button type="submit" className="w-full bg-[#D7EFF6]  text-[#60B3D1] py-3" disabled={isLoading}>
               {isLoading ? "Submitting..." : "Submit"}
             </Button>
           </form>
