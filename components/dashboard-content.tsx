@@ -14,6 +14,7 @@ import { set } from "zod";
 import SendMoneyToOtherBankModal from "./modals/sendMoneyToOtherBanksModal";
 import SendMoneyToSimkashModal from "./modals/sendToSimkashModal";
 import { SendMoneySelectionModal } from "./modals/sendMoneySelectMoodal";
+import { useRouter } from "next/navigation";
 
 interface Transaction {
   id: number;
@@ -33,6 +34,7 @@ interface DashboardData {
 }
 
 export function DashboardContent() {
+  const router = useRouter();
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(
     null
@@ -49,15 +51,17 @@ export function DashboardContent() {
       try {
         setLoading(true);
         const response = await AuthAPI.getDashboardData();
+       if (!response.success) {
+     
+        router.push("/login");
+        return;
+      }
+        console.log("response", response);
 
-        if (response.success) {
-          const data = response.data;
-          setDashboardData(data);
-          setDashboardDatas(data);
-          console.log("✅ Set dashboard data:", response.data);
-        } else {
-          setError(response.message || "Failed to load dashboard data");
-        }
+         const data = response.data;
+      setDashboardData(data);
+      setDashboardDatas(data);
+
       } catch (err) {
         setError("An unexpected error occurred");
         console.error("Dashboard data fetch error:", err);
@@ -67,7 +71,7 @@ export function DashboardContent() {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [router, setDashboardDatas]);
   const toggleBalanceVisibility = () => {
     setShowBalance(!showBalance);
   };
@@ -164,21 +168,9 @@ export function DashboardContent() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="p-6 text-center text-red-500">
-        {error}
-        <button
-          onClick={() => window.location.reload()}
-          className="mt-4 px-4 py-2 bg-[#24C0FF] text-white rounded-lg"
-        >
-          Retry
-        </button>
-      </div>
-    );
-  }
 
-  if (!dashboardData) {
+
+  if (!dashboardData ) {
     return (
       <div className="p-6 text-center text-gray-500">
         No dashboard data available

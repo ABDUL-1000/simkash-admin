@@ -8,24 +8,25 @@ import { StatCard } from "@/components/stat-card";
 
 import Image from "next/image";
 import { number } from "zod";
+import CordinatorInventoryTable from "@/components/cordinator-table";
 
 const stats = [
   {
-    title: "Total SIMs Added",
+    title: "Total SIMs Received",
     icon: <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4" />,
     value: 4,
     note: "Updated 10m",
     minWidth: "min-w-[150px]",
   },
   {
-    title: "Active SIMs",
+    title: "Current SIMs",
     icon: <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4" />,
     value: 2,
     note: "Updated 10m",
     minWidth: "min-w-[150px]",
   },  
   {
-    title: "Pending Activation",
+    title: "SIMs Distributed",
     icon: <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4" />,
     value: 4,
     note: "Updated 10m",
@@ -82,7 +83,7 @@ export default function Page() {
                 ))}
               </div>
             </div>
-            <OrderProductsTable/>
+            <CordinatorInventoryTable/>
              <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {mobileTable.map((mobile, i) => (
                 <SimTableCard  key={i} {...mobile} />

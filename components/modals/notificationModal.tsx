@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Bell } from "lucide-react"
+import { ArrowLeftRight, Bell } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -49,13 +49,13 @@ function NotificationItem({ notification }: { notification: Notification }) {
 
   const getNotificationIcon = (type: string) => {
     switch (type.toLowerCase()) {
-      case "Transaction":
-        return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+      case "transaction":
+        return <ArrowLeftRight/>
       case "airtime":
-           return <Image src="/telephone-outbound.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+           return <Image src="/telephone-outbound.png" alt="logo" width={20} height={30} className="h-5 w-4 rounded-full bg-[#E47716]"/>
       case "data":
-           return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
-      case "bills":
+           return <Image src="/bignetworksign.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
+      case "bill payment":
            return <Image src="/lightning.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
       case "TV Subscription":
            return <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4"/>
@@ -69,25 +69,25 @@ function NotificationItem({ notification }: { notification: Notification }) {
   const getNotificationColor = (type: string) => {
     switch (type.toLowerCase()) {
       case "transaction":
-        return "bg-blue-50 border-blue-200"
+        return ""
       case "airtime":
-        return "bg-green-50 border-green-200"
+        return ""
       default:
-        return "bg-gray-50 border-gray-200"
+        return ""
     }
   }
 
   return (
     <div
-      className={`p-4 border rounded-lg ${getNotificationColor(notification.notification_type)} ${!notification.read ? "border-l-4 border-l-blue-500" : ""}`}
+      className={`p-2   rounded-lg ${getNotificationColor(notification.notification_type)}`}
     >
       <div className="flex items-start gap-3">
-        <div className="text-2xl">{getNotificationIcon(notification.notification_type)}</div>
+        <div className="text-[12px] text-[#000000]">{getNotificationIcon(notification.notification_type)}</div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between mb-1">
             <h4 className="text-sm font-semibold text-gray-900 truncate">{notification.title}</h4>
             <div className="flex items-center gap-2">
-              {!notification.read && <div className="w-2 h-2 bg-blue-500 rounded-full"></div>}
+              {!notification.read && <div className="w-2 h-2"></div>}
               <span className="text-xs text-gray-500">{formatDate(notification.createdAt)}</span>
             </div>
           </div>
@@ -176,7 +176,7 @@ export function NotificationsModal() {
         <Button variant="ghost" size="icon" className="relative rounded-full">
           <Bell className="h-5 w-5 text-gray-600" />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
+            <span className=" absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

@@ -1,34 +1,78 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import Image from "next/image"
-import { usePathname } from "next/navigation"
-import { cn } from "@/lib/utils"
-import { Wallet, CreditCard, ReceiptText, LifeBuoy, Settings, Menu, X, LogOut, LayoutDashboard } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { useState } from "react"
-import { AuthAPI } from "@/lib/API/api"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@radix-ui/react-dropdown-menu"
-import { useDashboardStore } from "@/app/store/zustandstore/useStore"
-import { NotificationsModal } from "../modals/notificationModal"
-
+import Link from "next/link";
+import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
+import {
+  Wallet,
+  CreditCard,
+  ReceiptText,
+  LifeBuoy,
+  Settings,
+  Menu,
+  X,
+  LogOut,
+  LayoutDashboard,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { AuthAPI } from "@/lib/API/api";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
+import { useDashboardStore } from "@/app/store/zustandstore/useStore";
+import { NotificationsModal } from "../modals/notificationModal";
+import path from "path";
 
 interface SidebarProps {
-  username?: string
-  email?: string
+  username?: string;
+  email?: string;
 }
 
-export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmail.com" }: SidebarProps) {
-  const pathname = usePathname()
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-    const userDetails = useDashboardStore((state) => state.userDetails)
-    const userProfile = useDashboardStore((state) => state.userProfile)
+export default function Sidebar({
+  username = "Yusuf",
+  email = "yusufababa50@gmail.com",
+}: SidebarProps) {
+  const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [deviceSimOpen, setDeviceSimOpen] = useState(false);
+  const userDetails = useDashboardStore((state) => state.userDetails);
+  const userProfile = useDashboardStore((state) => state.userProfile);
 
   const mainRoutes = [
     {
       name: "Dashboard",
       path: "/dashboard",
-      icon: <Image src="/homeIcon.png" alt="logo" width={30} height={30} className="h-5 w-5" />,
+      icon: (
+        <Image
+          src="/homeIcon.png"
+          alt="logo"
+          width={30}
+          height={30}
+          className="h-5 w-5"
+        />
+      ),
+    },
+    {
+      name: "Dashboard-I",
+      path: "/inevestor-dashboard",
+      icon: (
+        <Image
+          src="/homeIcon.png"
+          alt="logo"
+          width={30}
+          height={30}
+          className="h-5 w-5"
+        />
+      ),
     },
     {
       name: "My Wallet",
@@ -36,9 +80,69 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       icon: <Wallet className="h-5 w-5" />,
     },
     {
+      name: "Device SIM R",
+      path: "/dashboard/device-sim-regional",
+      icon: <CreditCard className="h-5 w-5" />,
+      subItems: [
+        {
+          name: "Overview",
+          path: "/dashboard/device-sim-regional/overview",
+        },
+        {
+          name: "Inventory",
+          path: "/dashboard/device-sim-regional/inventory",
+        },
+        {
+          name: "Partners",
+          path: "/dashboard/device-sim-regional/partners",
+        },
+      ],
+    },
+    {
+      name: "Device SIM C",
+      path: "/dashboard/device-sim-cordinator",
+      icon: <CreditCard className="h-5 w-5" />,
+      subItems: [
+        {
+          name: "Overview",
+          path: "/dashboard/device-sim-cordinator/overview",
+        },
+        {
+          name: "Inventory",
+          path: "/dashboard/device-sim-cordinator/inventory",
+        },
+        {
+          name: "Partners",
+          path: "/dashboard/device-sim-cordinator/partners",
+        },
+      ],
+    },
+    {
       name: "Device SIM",
       path: "/dashboard/device-sim",
       icon: <CreditCard className="h-5 w-5" />,
+    
+    },
+    {
+      name: "Device SIM",
+      path: "/dashboard/device-sim",
+      icon: <CreditCard className="h-5 w-5" />,
+    
+    },
+    {
+      name: "Device SIM P",
+      path: "/dashboard/device-sim",
+      icon: <CreditCard className="h-5 w-5" />,
+      subItems: [
+        {
+          name: "Overview",
+          path: "/dashboard/device-sim-partner/overview",
+        },
+        {
+          name: "Inventory",
+          path: "/dashboard/device-sim-partner/inventory",
+        },
+      ],
     },
     {
       name: "Bill Payments",
@@ -50,7 +154,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       path: "/dashboard/transactions",
       icon: <ReceiptText className="h-5 w-5" />,
     },
-  ]
+  ];
 
   const bottomRoutes = [
     {
@@ -63,18 +167,17 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       path: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
     },
-  ]
+  ];
 
   const handleLogout = async () => {
-    await AuthAPI.logout()
-  }
+    await AuthAPI.logout();
+  };
+
+  const isDeviceSimActive = pathname.startsWith("/dashboard/device-sim");
 
   return (
     <>
-    
       {/* Mobile menu button - moved to the right */}
-
-       
       <Button
         variant="outline"
         size="icon"
@@ -84,17 +187,23 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
         {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
 
-     
-
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-background transition-transform duration-200 ease-in-out border-r",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}
       >
         <div className="flex h-16 items-center border-b px-6">
-          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
-            <Image src="/simcard.png" alt="Simkash Logo" width={32} height={32} />
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-2 font-semibold"
+          >
+            <Image
+              src="/simcard.png"
+              alt="Simkash Logo"
+              width={32}
+              height={32}
+            />
             <span className="text-xl font-bold text-slate-800">simkash</span>
           </Link>
         </div>
@@ -102,21 +211,70 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
         {/* Main navigation links */}
         <nav className="flex-1 overflow-auto py-4">
           <ul className="space-y-1 px-2">
-            {mainRoutes.map((route) => (
-              <li key={route.path}>
-                <Link
-                  href={route.path}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === route.path ? "bg-[#EFF9FC] text-[#132939]" : "hover:bg-muted",
-                  )}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  {route.icon}
-                  {route.name}
-                </Link>
-              </li>
-            ))}
+            {mainRoutes.map((route) => {
+              if (route.subItems) {
+                return (
+                  <li key={route.name}>
+                    <button
+                      onClick={() => setDeviceSimOpen(!deviceSimOpen)}
+                      className={cn(
+                        "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isDeviceSimActive
+                          ? "bg-[#EFF9FC] text-[#132939]"
+                          : "hover:bg-muted"
+                      )}
+                    >
+                      <div className="flex items-center gap-3">
+                        {route.icon}
+                        {route.name}
+                      </div>
+                      {deviceSimOpen ? (
+                        <ChevronUp className="h-4 w-4" />
+                      ) : (
+                        <ChevronDown className="h-4 w-4" />
+                      )}
+                    </button>
+                    {deviceSimOpen && (
+                      <ul className="ml-8 mt-1 space-y-1">
+                        {route.subItems.map((subItem) => (
+                          <li key={subItem.path}>
+                            <Link
+                              href={subItem.path}
+                              className={cn(
+                                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                pathname === subItem.path
+                                  ? "bg-[#EFF9FC] text-[#132939]"
+                                  : "hover:bg-muted"
+                              )}
+                              onClick={() => setSidebarOpen(false)}
+                            >
+                              {subItem.name}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                );
+              }
+              return (
+                <li key={route.path}>
+                  <Link
+                    href={route.path}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      pathname === route.path
+                        ? "bg-[#EFF9FC] text-[#132939]"
+                        : "hover:bg-muted"
+                    )}
+                    onClick={() => setSidebarOpen(false)}
+                  >
+                    {route.icon}
+                    {route.name}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
 
@@ -129,7 +287,9 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                   href={route.path}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === route.path ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+                    pathname === route.path
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted"
                   )}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -144,64 +304,83 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
           <div className="mt-4 px-3">
             <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
               <div className="flex items-center gap-3">
-                
-              <div className=" lg:block">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
-                    <span className="text-sm font-medium text-gray-600">
-                      {userProfile?.fullname
-                        .split(" ")
-                        .map((n) => n[0])
-                        .join("")
-                        .toUpperCase()}
-                    </span>
-                  </div>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2  ">
-                <DropdownMenuLabel>
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{userProfile?.fullname}</p>
-                    <p className="text-xs text-muted-foreground">{userDetails?.email}</p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
+                <div className=" lg:block">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="rounded-full"
+                      >
+                        <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
+                          <span className="text-sm font-medium text-gray-600">
+                            {userProfile?.fullname
+                              .split(" ")
+                              .map((n) => n[0])
+                              .join("")
+                              .toUpperCase()}
+                          </span>
+                        </div>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2  "
+                    >
+                      <DropdownMenuLabel>
+                        <div className="flex flex-col space-y-1">
+                          <p className="text-sm font-medium">
+                            {userProfile?.fullname}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {userDetails?.email}
+                          </p>
+                        </div>
+                      </DropdownMenuLabel>
+                      <DropdownMenuSeparator />
 
-                <DropdownMenuItem asChild>
-                  <Link href="/dashboard" className="flex w-full cursor-pointer items-center">
-                    <LayoutDashboard className="mr-2 h-4 w-4" />
-                    <h1 className="text-sm">
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/dashboard"
+                          className="flex w-full cursor-pointer items-center"
+                        >
+                          <LayoutDashboard className="mr-2 h-4 w-4" />
+                          <h1 className="text-sm">Dashboard</h1>
+                        </Link>
+                      </DropdownMenuItem>
 
-                    Dashboard
-                    </h1>
-                  </Link>
-                </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/wallet"
+                          className="flex w-full cursor-pointer items-center"
+                        >
+                          <Wallet className="mr-2 h-4 w-4" />
+                          My Wallet
+                        </Link>
+                      </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
-                  <Link href="/wallet" className="flex w-full cursor-pointer items-center">
-                    <Wallet className="mr-2 h-4 w-4" />
-                    My Wallet
-                  </Link>
-                </DropdownMenuItem>
+                      <DropdownMenuItem asChild>
+                        <Link
+                          href="/settings"
+                          className="flex w-full cursor-pointer items-center"
+                        >
+                          <Settings className="mr-2 h-4 w-4" />
+                          Settings
+                        </Link>
+                      </DropdownMenuItem>
 
-                <DropdownMenuItem asChild>
-                  <Link href="/settings" className="flex w-full cursor-pointer items-center">
-                    <Settings className="mr-2 h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
+                      <DropdownMenuSeparator />
 
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem onClick={handleLogout} className="cursor-pointer flex items-center justify-start">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Logout
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                      <DropdownMenuItem
+                        onClick={handleLogout}
+                        className="cursor-pointer flex items-center justify-start"
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        Logout
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </div>
               <Button
                 variant="ghost"
@@ -219,8 +398,11 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
       )}
     </>
-  )
+  );
 }

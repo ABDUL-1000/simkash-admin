@@ -309,10 +309,9 @@ const SendMoneyModal: React.FC<SendMoneyModalProps> = ({ isOpen, onClose, onSucc
         return
       }
 
-      console.log("Final Airtime data being sent:", formData)
-
+    
       const response = await AuthAPI.buyAirtime(formData)
-      console.log("Airtime purchase successful:", response)
+ 
 
       if (response.success) {
         // Use the transaction_reference from your API response

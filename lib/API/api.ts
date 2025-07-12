@@ -1,3 +1,4 @@
+import { useRouter } from "next/navigation";
 import {
   AirtimeRequest,
   CableBillRequest,
@@ -10,6 +11,7 @@ import {
   PasswordChangeResponse,
 } from "../type";
 import { BASE_URL } from "@/constants/api";
+import { ru } from "date-fns/locale";
 
 interface SignupRequest {
   email: string;
@@ -18,6 +20,12 @@ interface SignupRequest {
 }
 interface AirtimeVerify {
   phone: string;
+}
+
+interface JambProfileVerification {
+  serviceID: string
+  billersCode: string
+  type: string
 }
 
 interface LoginRequest {
@@ -74,6 +82,15 @@ interface CreateNewPasswordRequest {
   new_password: string;
   confirm_password: string;
 }
+
+interface JambBillRequest {
+  serviceID: string
+  variation_code: string
+  billersCode: string
+  amount: string
+  phone: string
+  pin: number
+}
 interface SimkashTransferRequest {
   amount: number;
   account: string;
@@ -96,7 +113,7 @@ interface TransferRequest {
 
 export class AuthAPI {
   private static baseUrl = BASE_URL;
-
+ 
   // Cookie management methods
   static setCookie(name: string, value: string, days = 7) {
     try {
@@ -1206,6 +1223,206 @@ export class AuthAPI {
       };
     }
   }
+
+  static async getWaecVariations(): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required. Please log in again.",
+      };
+    }
+
+    const response = await fetch(
+      `${this.baseUrl}/api/v1/billpayment/education/waec/variation?serviceID=waec`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        this.clearAccessToken();
+        return {
+          success: false,
+          message: "Session expired. Please log in again.",
+        };
+      }
+      throw new Error(
+        result.responseMessage ||
+          result.message ||
+          "Failed to fetch WAEC variations"
+      );
+    }
+
+    return {
+      success: true,
+      data: result.responseBody || result,
+    };
+  } catch (error) {
+    console.error("WAEC variations fetch error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "Network error occurred",
+    };
+  }
+}
+
+static async payWaecBill(data: {
+  serviceID: string;
+  variation_code: string;
+  amount: string;
+  quantity: string;
+  phone: string;
+  pin: number;
+}): Promise<ApiResponse> {
+  try {
+    const token = this.getAccessToken();
+    if (!token) {
+      return {
+        success: false,
+        message: "Authentication token is required. Please log in again.",
+      };
+    }
+
+    const payload = {
+      serviceID: data.serviceID,
+      variation_code: data.variation_code,
+      amount: data.amount,
+      quantity: data.quantity,
+      phone: data.phone,
+      pin: data.pin,
+    };
+
+    const response = await fetch(
+      `${this.baseUrl}/api/v1/billpayment/education/waec/purchase`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      if (response.status === 400) {
+        const errorMessage =
+          result.responseMessage || result.error || "Invalid request data";
+        console.error("400 Bad Request Details:", result);
+        throw new Error(errorMessage);
+      }
+      throw new Error(result.responseMessage || "WAEC payment failed");
+    }
+
+    return {
+      success: true,
+      data: result.responseBody || result,
+      message: result.responseMessage || "WAEC payment successful",
+    };
+  } catch (error) {
+    console.error("WAEC payment error:", error);
+    return {
+      success: false,
+      message:
+        error instanceof Error ? error.message : "WAEC payment failed",
+    };
+  }
+}
+ public static async payJambBill(data: JambBillRequest): Promise<any> {
+    try {
+      console.log("API received JAMB data:", data)
+
+      // Validation - check for required fields
+      if (!data.amount || typeof data.amount !== "string") {
+        throw new Error("Amount is required and must be a string")
+      }
+      if (!data.billersCode) {
+        throw new Error("Profile ID is required")
+      }
+      if (!data.variation_code) {
+        throw new Error("Variation code is required")
+      }
+      if (!data.serviceID) {
+        throw new Error("Service ID is required")
+      }
+      if (!data.phone) {
+        throw new Error("Phone number is required")
+      }
+      if (data.pin === null || data.pin === undefined) {
+        throw new Error("PIN is required")
+      }
+
+      // Convert pin to number if it's a string
+      const pin = typeof data.pin === "string" ? Number.parseInt(data.pin) : data.pin
+      if (isNaN(pin) || pin.toString().length !== 4) {
+        throw new Error("PIN must be 4 digits")
+      }
+
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      // Prepare payload with correct field names and types
+      const payload = {
+        serviceID: data.serviceID,
+        variation_code: data.variation_code,
+        billersCode: data.billersCode,
+        amount: data.amount, 
+        phone: data.phone,
+        pin: pin,
+      }
+
+      console.log("Sending JAMB payload:", payload)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/education/jamb/purchase`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          const errorMessage = result.responseMessage || result.error || "Invalid request data"
+          console.error("400 Bad Request Details:", result)
+          throw new Error(errorMessage)
+        }
+        throw new Error(result.responseMessage || "JAMB payment failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "JAMB payment successful",
+      }
+    } catch (error) {
+      console.error("JAMB payment error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "JAMB payment failed",
+      }
+    }
+  }
   static async buyAirtime(data: AirtimeRequest): Promise<ApiResponse> {
     try {
       console.log("API received data:", data);
@@ -1643,6 +1860,53 @@ export class AuthAPI {
       };
     }
   }
+
+   static async getJambVariations(): Promise<any> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching JAMB variations...")
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/education/jamb/variation?serviceID=jamb`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("JAMB variations response:", result)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Failed to fetch JAMB variations")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+      }
+    } catch (error) {
+      console.error("JAMB variations fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+
   static async getDataPlans(serviceID: string): Promise<ApiResponse> {
     try {
       const token = this.getAccessToken();
@@ -2094,10 +2358,13 @@ export class AuthAPI {
     }
   }
   static async getDashboardData(): Promise<ApiResponse> {
+    
     try {
       const token = this.getAccessToken();
 
       if (!token) {
+         const router = useRouter();
+   
         return {
           success: false,
           message: "Authentication token is required. Please log in again.",
@@ -2115,40 +2382,19 @@ export class AuthAPI {
       });
 
       const result = await response.json();
-      console.log("Dashboard response:", result);
+      console.log("Dashboard response:", result.responseBody);
       console.log(
         "Dashboard user details:",
         result.responseBody.wallet.balance
       );
+    
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          this.clearAccessToken();
-          return {
-            success: false,
-            message: "Session expired. Please log in again.",
-          };
-        }
-        throw new Error(
-          result.responseMessage ||
-            result.message ||
-            "Failed to fetch dashboard data"
-        );
-      }
 
-      if (!result.responseSuccessful) {
-        return {
-          success: false,
-          message: result.responseMessage || "Failed to fetch dashboard data",
-        };
-      }
 
       return {
-        success: true,
+        success: result.responseSuccessful,
         data: result.responseBody || result,
-        message:
-          result.responseMessage || "Dashboard data fetched successfully",
-      };
+      }
     } catch (error) {
       console.error("Dashboard fetch error:", error);
       return {
@@ -2424,6 +2670,55 @@ static async verifySimkashAccount(account: string): Promise<ApiResponse> {
         message:
           error instanceof Error ? error.message : "Network error occurred",
       };
+    }
+  }
+
+    public static async verifyJambProfile(data: JambProfileVerification): Promise<any> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Verifying JAMB profile:", data)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/billpayment/education/jamb/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      })
+
+      const result = await response.json()
+      console.log("JAMB profile verification response:", result)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Profile verification failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "Profile verified successfully",
+      }
+    } catch (error) {
+      console.error("JAMB profile verification error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Profile verification failed",
+      }
     }
   }
 }
