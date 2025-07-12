@@ -67,11 +67,18 @@ export default function BillsPage() {
       dis: "Stay connected to your favorite shows — pay for DSTV, GOTV, and more in seconds.",
     },
     {
-      name: "EXAMS PAYMENT",
-      icon: "/tv-icon.png",
-      modalType: "exam",
-      onClick: () => setOpenModal("exam"),
-      dis: "Stay connected to your favorite shows — pay for DSTV, GOTV, and more in seconds.",
+      name: "JAMB Registration PIN",
+      icon: "/newspaper.png",
+      modalType: "jamb-exam",
+      onClick: () => setOpenModal("jamb-exam"),
+      dis: "Secure your official JAMB e-PIN instantly to begin your UTME registration—fast, easy, and 100% approved.",
+    },
+    {
+      name: "WAEC Result Checker",
+      icon: "/book.png",
+      modalType: "waec-exam",
+      onClick: () => setOpenModal("waec-exam"),
+      dis: "Get your WAEC result checker PIN and access your exam results anytime, anywhere with ease.",
     },
   ]
 
@@ -135,16 +142,7 @@ export default function BillsPage() {
         onClose={() => setOpenModal(null)}
         onSuccess={handleModalSuccess}
       />
-            <ExamPaymentModal
-              isOpen={openModal === "exam"}
-              onClose={() => setOpenModal(null)}
-              onSelectWaec={() => {
-                setOpenModal("waec-exam");
-              }}
-              onSelectJamb={() => {
-                setOpenModal("jamb-exam");
-              }}
-            />
+           
       <AirtimeToCashModal isOpen={openModal === "airtimetocash"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
       <DataModal isOpen={openModal === "data"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
       <ElectricPaymentModal isOpen={openModal === "electric-bills"} onClose={() => setOpenModal(null)} onSuccess={handleModalSuccess} />
