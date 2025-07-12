@@ -80,7 +80,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
             className="h-5 w-5"
           />
         ),
-        showForAgent: true,
+        showForAgent: false,
         showForUser: false,
       },
       {
