@@ -277,4 +277,5 @@ export interface DashboardData {
   userDetails: UserDetails;
   userProfile: UserProfile;
   wallet: Wallet;
+  isAgent: boolean;
 }

@@ -29,6 +29,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useAuthStore } from "@/app/store/zustandstore/useAuthStore" // Import the new auth store
+import { useDashboardStore } from "@/app/store/zustandstore/useStore"
 
 interface SidebarProps {
   username?: string
@@ -41,11 +42,13 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
   const [deviceSimOpen, setDeviceSimOpen] = useState(false)
 
   // Get user details and the clearAuthData action from the new Auth Zustand store
-  const user = useAuthStore((state) => state.user)
+  const isAgent = useDashboardStore((state) => state.dashboardData?.isAgent)
+  const user = useDashboardStore((state) => state.userDetails)
   const clearAuthData = useAuthStore((state) => state.clearAuthData)
+  console.log("user:", isAgent)
 
   // Determine if the user is an agent directly from the user object
-  const isAgent = user?.isAgent
+  
 
   // Define all possible main routes with flags for agent/user visibility
   const baseRoutes = useMemo(
@@ -120,7 +123,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
         showForUser: true,
       },
       {
-        name: "Device SIM P", // This is for agents
+        name: "Device SIM ", // This is for agents
         path: "/dashboard/device-sim-partner", // Changed path to be distinct for partner
         icon: <CreditCard className="h-5 w-5" />,
         subItems: [
@@ -155,7 +158,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
     } else if (isAgent === false) {
       return baseRoutes.filter((route) => route.showForUser)
     }
-    // Default to showing routes for regular users if isAgent status is not yet determined (e.g., on initial load before hydration)
+   
     return baseRoutes.filter((route) => route.showForUser)
   }, [isAgent, baseRoutes])
 

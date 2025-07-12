@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/page-header"
 import { useState } from "react"
 import PartnerSimTable from "@/components/partner-simTable"
 import PartnerSimRegistrationModal from "@/components/modals/partner-sim-reg-modal"
+import PartnerOverViewSimTable from "@/components/partner-overview-table"
 
 
 const stats = [
@@ -104,7 +105,7 @@ export default function SimPage() {
                 ))}
               </div>
             </div>
-            <PartnerSimTable />
+            <PartnerOverViewSimTable />
             <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
               {mobileTable.map((mobile, i) => (
                 <SimTableCard key={i} {...mobile} />
