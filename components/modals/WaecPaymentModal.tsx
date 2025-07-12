@@ -67,7 +67,7 @@ const WaecPaymentModal: React.FC<WaecPaymentModalProps> = ({ isOpen, onClose, on
       serviceID: "waec",
       variation_code: "",
       amount: "",
-      quantity: 1,
+      quantity: '',
       phone: "",
       pin: "",
     },

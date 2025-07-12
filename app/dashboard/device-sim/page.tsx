@@ -1,13 +1,18 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard-layout";
-import OrderProductsTable from "@/components/sim-cards";
+import OrderProductsTable from "@/components/partner-simTable";
 import { SimTableCard } from "@/components/sim-table-mobile";
 import { SimManagement } from "@/components/user-device-sim-header";
 import { StatCard } from "@/components/stat-card";
 
 import Image from "next/image";
 import { number } from "zod";
+import UserSimRegistrationModal from "@/components/modals/userSimRegModal";
+import { PageHeader } from "@/components/page-header";
+import PartnerSimRegistrationModal from "@/components/modals/partner-sim-reg-modal";
+import { useState } from "react";
+import UserAssignedSimTable from "@/components/partner-simTable";
 
 const stats = [
   {
@@ -68,29 +73,48 @@ const mobileTable = [
 ];
 
 export default function Page() {
+    const [isModalOpen, setIsModalOpen] = useState(false)
+      const handleSimRegistrationSuccess = (data: any) => {
+    console.log("SIM registration successful:", data)
+  
+  }
   return (
     <DashboardLayout>
-      <div className="flex flex-1 flex-col p-4 font-sora"> {/* Added font-sora here */}
-        <SimManagement />
+      <div className="flex flex-1 flex-col p-4 font-sora">
+        {/* PageHeader with the modal trigger */}
+        <PageHeader
+          title="Your Partner:"
+          subtitle="You don't have partner yet"
+          onAddClick={() => setIsModalOpen(true)}
+          addLabel="Add new Sim"
+        />
+
+        {/* SIM Registration Modal */}
+        <UserSimRegistrationModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={handleSimRegistrationSuccess}
+        />
+
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
             <div className="bg-[#FFFFFF]">
-              <p className="px-4 py-2 text-[#303237]">Overview</p> {/* Removed font-sora - will inherit */}
+              <p className="px-4 py-2 text-[#303237]">Overview</p>
               <div className="grid bg-[#FFFFFF] p-4 mt-2 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {stats.map((stat, i) => (
                   <StatCard key={i} {...stat} />
                 ))}
               </div>
             </div>
-            <OrderProductsTable/>
-             <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {mobileTable.map((mobile, i) => (
-                <SimTableCard  key={i} {...mobile} />
-                ))}
-              </div>
+            <UserAssignedSimTable/>
+            <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {mobileTable.map((mobile, i) => (
+                <SimTableCard key={i} {...mobile} />
+              ))}
+            </div>
           </div>
         </div>
       </div>
     </DashboardLayout>
-  );
+  )
 }

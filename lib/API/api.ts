@@ -18,6 +18,19 @@ interface SignupRequest {
   password: string;
   confirm_password: string;
 }
+
+interface SimRequestData {
+  country: string
+  state: string
+  lga: string
+}
+
+interface SimRegistrationRequest {
+  sim_number: string
+  batch_id: number
+  network: string
+  phone: string
+}
 interface AirtimeVerify {
   phone: string;
 }
@@ -908,6 +921,78 @@ export class AuthAPI {
     }
   }
 
+   static async userRequestSim(data: SimRequestData): Promise<any> {
+    try {
+      console.log("API received SIM request data:", data)
+
+      // Validation - check for required fields
+      if (!data.country) {
+        throw new Error("Country is required")
+      }
+      if (!data.state) {
+        throw new Error("State is required")
+      }
+      if (!data.lga) {
+        throw new Error("LGA is required")
+      }
+
+
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      // Prepare payload
+      const payload = {
+        country: data.country,
+        state: data.state,
+        lga: data.lga,
+       
+      }
+
+      console.log("Sending SIM request payload:", payload)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/user/sim/request`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          const errorMessage = result.responseMessage || result.error || "Invalid request data"
+          console.error("400 Bad Request Details:", result)
+          throw new Error(errorMessage)
+        }
+        if (response.status === 401) {
+          this.clearAccessToken()
+          throw new Error("Session expired. Please log in again.")
+        }
+        throw new Error(result.responseMessage || "SIM request failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "SIM request submitted successfully",
+      }
+    } catch (error) {
+      console.error("SIM request error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "SIM request failed",
+      }
+    }
+  }
+
     static async registerCoordinator(data: CoordinatorRegistrationRequest): Promise<ApiResponse> {
     try {
       // Validate required fields
@@ -1127,6 +1212,76 @@ export class AuthAPI {
         message:
           error instanceof Error ? error.message : "Electric payment failed",
       };
+    }
+  }
+
+    public static async agentActivateSim(data: SimRegistrationRequest): Promise<any> {
+    try {
+      console.log("API received SIM registration data:", data)
+
+      // Validation - check for required lds
+      if (!data.sim_number) {
+        throw new Error("SIM number is required")
+      }
+      if (!data.batch_id || data.batch_id <= 0) {
+        throw new Error("SIM batch is required")
+      }
+      if (!data.network) {
+        throw new Error("Network is required")
+      }
+      if (!data.phone) {
+        throw new Error("Phone number is required")
+      }
+
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required",
+        }
+      }
+
+      // Prepare payload
+      const payload = {
+        sim_number: data.sim_number,
+        batch_id: data.batch_id,
+        network: data.network,
+        phone: data.phone,
+      }
+
+      console.log("Sending SIM registration payload:", payload)
+
+      const response = await fetch(`${this.baseUrl}/api/v1/agent/sim/activate`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        if (response.status === 400) {
+          const errorMessage = result.responseMessage || result.error || "Invalid request data"
+          console.error("400 Bad Request Details:", result)
+          throw new Error(errorMessage)
+        }
+        throw new Error(result.responseMessage || "SIM registration failed")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+        message: result.responseMessage || "SIM registration successful",
+      }
+    } catch (error) {
+      console.error("SIM registration error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "SIM registration failed",
+      }
     }
   }
   static async payCableBill(data: CableBillRequest): Promise<ApiResponse> {
@@ -1907,6 +2062,52 @@ static async payWaecBill(data: {
     }
   }
 
+    public static async getAgentSimBatches(): Promise<any> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching agent SIM batches...")
+      const response = await fetch(`${this.baseUrl}/api/v1/agent/sim/batches`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("SIM batches response:", result)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Failed to fetch SIM batches")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+      }
+    } catch (error) {
+      console.error("SIM batches fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+
   static async getDataPlans(serviceID: string): Promise<ApiResponse> {
     try {
       const token = this.getAccessToken();
@@ -2250,6 +2451,7 @@ static async payWaecBill(data: {
       };
     }
   }
+  
   static async getElectricBillers(): Promise<ApiResponse> {
     try {
       const token = this.getAccessToken();
@@ -2303,6 +2505,97 @@ static async payWaecBill(data: {
         message:
           error instanceof Error ? error.message : "Network error occurred",
       };
+    }
+  }
+
+   public static async getAgentAssignedSims(): Promise<any> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching assigned SIMs...")
+      const response = await fetch(`${this.baseUrl}/api/v1/agent/sim/assigned`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("Assigned SIMs response:", result)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Failed to fetch assigned SIMs")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+      }
+    } catch (error) {
+      console.error("Assigned SIMs fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
+    }
+  }
+   public static async getUserAssignedSims(): Promise<any> {
+    try {
+      const token = this.getAccessToken()
+      if (!token) {
+        return {
+          success: false,
+          message: "Authentication token is required. Please log in again.",
+        }
+      }
+
+      console.log("Fetching assigned SIMs...")
+      const response = await fetch(`${this.baseUrl}/api/v1/user/sim`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+
+      const result = await response.json()
+      console.log("Assigned SIMs response:", result)
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          this.clearAccessToken()
+          return {
+            success: false,
+            message: "Session expired. Please log in again.",
+          }
+        }
+        throw new Error(result.responseMessage || result.message || "Failed to fetch assigned SIMs")
+      }
+
+      return {
+        success: true,
+        data: result.responseBody || result,
+      }
+    } catch (error) {
+      console.error("Assigned SIMs fetch error:", error)
+      return {
+        success: false,
+        message: error instanceof Error ? error.message : "Network error occurred",
+      }
     }
   }
   static async getBanksList(): Promise<ApiResponse> {

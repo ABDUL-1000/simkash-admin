@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard-layout";
-import OrderProductsTable from "@/components/sim-cards";
+import OrderProductsTable from "@/components/partner-simTable";
 import { SimTableCard } from "@/components/sim-table-mobile";
 import { StatCard } from "@/components/stat-card";
 import Image from "next/image";

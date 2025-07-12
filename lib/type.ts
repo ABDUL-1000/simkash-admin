@@ -102,6 +102,27 @@ export interface DashboardResponse {
   }>;
   // Add any other fields your dashboard API returns
 }
+
+export interface User {
+  id: number
+  username: string | null
+  email: string
+  phone: string
+ 
+  status: string
+
+  isProfileComplete: boolean
+  isVerified: boolean
+  source: string
+  fmcToken: string | null
+  refereshToken: string | null
+  lastLogin: string
+  createdAt: string
+  updatedAt: string
+  isAgent: boolean // Crucial for your logic
+  isStateCordinator: boolean
+}
+
 export interface PaymentRequest {
   amount: number;
   // Add any other fields your payment API requires

@@ -1,9 +1,9 @@
-"use client";
-
-import Link from "next/link";
-import Image from "next/image";
-import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+// components/sidebar.tsx (Modified)
+"use client"
+import Link from "next/link"
+import Image from "next/image"
+import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 import {
   Wallet,
   CreditCard,
@@ -16,10 +16,10 @@ import {
   LayoutDashboard,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { AuthAPI } from "@/lib/API/api";
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useState, useMemo } from "react"
+import { AuthAPI } from "@/lib/API/api" // Assuming AuthAPI exists and has a logout method
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,134 +27,137 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@radix-ui/react-dropdown-menu";
-import { useDashboardStore } from "@/app/store/zustandstore/useStore";
-import { NotificationsModal } from "../modals/notificationModal";
-import path from "path";
+} from "@/components/ui/dropdown-menu"
+import { useAuthStore } from "@/app/store/zustandstore/useAuthStore" // Import the new auth store
 
 interface SidebarProps {
-  username?: string;
-  email?: string;
+  username?: string
+  email?: string
 }
 
-export default function Sidebar({
-  username = "Yusuf",
-  email = "yusufababa50@gmail.com",
-}: SidebarProps) {
-  const pathname = usePathname();
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [deviceSimOpen, setDeviceSimOpen] = useState(false);
-  const userDetails = useDashboardStore((state) => state.userDetails);
-  const userProfile = useDashboardStore((state) => state.userProfile);
+export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmail.com" }: SidebarProps) {
+  const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [deviceSimOpen, setDeviceSimOpen] = useState(false)
 
-  const mainRoutes = [
-    {
-      name: "Dashboard",
-      path: "/dashboard",
-      icon: (
-        <Image
-          src="/homeIcon.png"
-          alt="logo"
-          width={30}
-          height={30}
-          className="h-5 w-5"
-        />
-      ),
-    },
-    {
-      name: "Dashboard-I",
-      path: "/inevestor-dashboard",
-      icon: (
-        <Image
-          src="/homeIcon.png"
-          alt="logo"
-          width={30}
-          height={30}
-          className="h-5 w-5"
-        />
-      ),
-    },
-    {
-      name: "My Wallet",
-      path: "/dashboard/wallet",
-      icon: <Wallet className="h-5 w-5" />,
-    },
-    {
-      name: "Device SIM R",
-      path: "/dashboard/device-sim-regional",
-      icon: <CreditCard className="h-5 w-5" />,
-      subItems: [
-        {
-          name: "Overview",
-          path: "/dashboard/device-sim-regional/overview",
-        },
-        {
-          name: "Inventory",
-          path: "/dashboard/device-sim-regional/inventory",
-        },
-        {
-          name: "Partners",
-          path: "/dashboard/device-sim-regional/partners",
-        },
-      ],
-    },
-    {
-      name: "Device SIM C",
-      path: "/dashboard/device-sim-cordinator",
-      icon: <CreditCard className="h-5 w-5" />,
-      subItems: [
-        {
-          name: "Overview",
-          path: "/dashboard/device-sim-cordinator/overview",
-        },
-        {
-          name: "Inventory",
-          path: "/dashboard/device-sim-cordinator/inventory",
-        },
-        {
-          name: "Partners",
-          path: "/dashboard/device-sim-cordinator/partners",
-        },
-      ],
-    },
-    {
-      name: "Device SIM",
-      path: "/dashboard/device-sim",
-      icon: <CreditCard className="h-5 w-5" />,
-    
-    },
-    {
-      name: "Device SIM",
-      path: "/dashboard/device-sim",
-      icon: <CreditCard className="h-5 w-5" />,
-    
-    },
-    {
-      name: "Device SIM P",
-      path: "/dashboard/device-sim",
-      icon: <CreditCard className="h-5 w-5" />,
-      subItems: [
-        {
-          name: "Overview",
-          path: "/dashboard/device-sim-partner/overview",
-        },
-        {
-          name: "Inventory",
-          path: "/dashboard/device-sim-partner/inventory",
-        },
-      ],
-    },
-    {
-      name: "Bill Payments",
-      path: "/dashboard/bills",
-      icon: <ReceiptText className="h-5 w-5" />,
-    },
-    {
-      name: "Transactions",
-      path: "/dashboard/transactions",
-      icon: <ReceiptText className="h-5 w-5" />,
-    },
-  ];
+  // Get user details and the clearAuthData action from the new Auth Zustand store
+  const user = useAuthStore((state) => state.user)
+  const clearAuthData = useAuthStore((state) => state.clearAuthData)
+
+  // Determine if the user is an agent directly from the user object
+  const isAgent = user?.isAgent
+
+  // Define all possible main routes with flags for agent/user visibility
+  const baseRoutes = useMemo(
+    () => [
+      {
+        name: "Dashboard",
+        path: "/dashboard",
+        icon: (
+          <Image
+            src="/homeIcon.png"  
+            alt="Dashboard Icon"
+            width={30}
+            height={30}
+            className="h-5 w-5"
+          />
+        ),
+        showForAgent: true,
+        showForUser: true,
+      },
+      {
+        name: "Dashboard-I",
+        path: "/inevestor-dashboard",
+        icon: (
+          <Image
+            src="/homeIcon.png"  
+            alt="Investor Dashboard Icon"
+            width={30}
+            height={30}
+            className="h-5 w-5"
+          />
+        ),
+        showForAgent: true,
+        showForUser: false,
+      },
+      {
+        name: "My Wallet",
+        path: "/dashboard/wallet",
+        icon: <Wallet className="h-5 w-5" />,
+        showForAgent: true,
+        showForUser: true,
+      },
+      // Device SIM R and C are hidden for both based on your request
+      {
+        name: "Device SIM R",
+        path: "/dashboard/device-sim-regional",
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Overview", path: "/dashboard/device-sim-regional/overview" },
+          { name: "Inventory", path: "/dashboard/device-sim-regional/inventory" },
+          { name: "Partners", path: "/dashboard/device-sim-regional/partners" },
+        ],
+        showForAgent: false,
+        showForUser: false,
+      },
+      {
+        name: "Device SIM C",
+        path: "/dashboard/device-sim-cordinator",
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Overview", path: "/dashboard/device-sim-cordinator/overview" },
+          { name: "Inventory", path: "/dashboard/device-sim-cordinator/inventory" },
+          { name: "Partners", path: "/dashboard/device-sim-cordinator/partners" },
+        ],
+        showForAgent: false,
+        showForUser: false,
+      },
+      {
+        name: "Device SIM", // This is for regular users
+        path: "/dashboard/device-sim",
+        icon: <CreditCard className="h-5 w-5" />,
+        showForAgent: false,
+        showForUser: true,
+      },
+      {
+        name: "Device SIM P", // This is for agents
+        path: "/dashboard/device-sim-partner", // Changed path to be distinct for partner
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Overview", path: "/dashboard/device-sim-partner/overview" },
+          { name: "Inventory", path: "/dashboard/device-sim-partner/inventory" },
+        ],
+        showForAgent: true,
+        showForUser: false,
+      },
+      {
+        name: "Bill Payments",
+        path: "/dashboard/bills",
+        icon: <ReceiptText className="h-5 w-5" />,
+        showForAgent: true,
+        showForUser: true,
+      },
+      {
+        name: "Transactions",
+        path: "/dashboard/transactions",
+        icon: <ReceiptText className="h-5 w-5" />,
+        showForAgent: true,
+        showForUser: true,
+      },
+    ],
+    [],
+  )
+
+  // Filter main routes based on isAgent status
+  const mainRoutesFiltered = useMemo(() => {
+    if (isAgent === true) {
+      return baseRoutes.filter((route) => route.showForAgent)
+    } else if (isAgent === false) {
+      return baseRoutes.filter((route) => route.showForUser)
+    }
+    // Default to showing routes for regular users if isAgent status is not yet determined (e.g., on initial load before hydration)
+    return baseRoutes.filter((route) => route.showForUser)
+  }, [isAgent, baseRoutes])
 
   const bottomRoutes = [
     {
@@ -167,13 +170,19 @@ export default function Sidebar({
       path: "/dashboard/settings",
       icon: <Settings className="h-5 w-5" />,
     },
-  ];
+  ]
 
   const handleLogout = async () => {
-    await AuthAPI.logout();
-  };
+    // Call your authentication API to log out
+    // Ensure AuthAPI.logout() clears server-side sessions/cookies if applicable
+    await AuthAPI.logout()
+    // Clear authentication data from the Zustand store
+    clearAuthData()
+    // Optionally redirect to login page
+    // router.push('/login');
+  }
 
-  const isDeviceSimActive = pathname.startsWith("/dashboard/device-sim");
+  const isDeviceSimActive = pathname.startsWith("/dashboard/device-sim")
 
   return (
     <>
@@ -181,25 +190,21 @@ export default function Sidebar({
       <Button
         variant="outline"
         size="icon"
-        className="fixed right-4 top-4 z-50 lg:hidden"
+        className="fixed right-4 top-4 z-50 lg:hidden bg-transparent"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
         {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
-
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-background transition-transform duration-200 ease-in-out border-r",
-          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex h-16 items-center border-b px-6">
-          <Link
-            href="/dashboard"
-            className="flex items-center gap-2 font-semibold"
-          >
+          <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
             <Image
-              src="/simcard.png"
+              src="/simcard.png" 
               alt="Simkash Logo"
               width={32}
               height={32}
@@ -207,11 +212,10 @@ export default function Sidebar({
             <span className="text-xl font-bold text-slate-800">simkash</span>
           </Link>
         </div>
-
         {/* Main navigation links */}
         <nav className="flex-1 overflow-auto py-4">
           <ul className="space-y-1 px-2">
-            {mainRoutes.map((route) => {
+            {mainRoutesFiltered.map((route) => {
               if (route.subItems) {
                 return (
                   <li key={route.name}>
@@ -219,20 +223,16 @@ export default function Sidebar({
                       onClick={() => setDeviceSimOpen(!deviceSimOpen)}
                       className={cn(
                         "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        isDeviceSimActive
+                        isDeviceSimActive && route.path.startsWith("/dashboard/device-sim")
                           ? "bg-[#EFF9FC] text-[#132939]"
-                          : "hover:bg-muted"
+                          : "hover:bg-muted",
                       )}
                     >
                       <div className="flex items-center gap-3">
                         {route.icon}
                         {route.name}
                       </div>
-                      {deviceSimOpen ? (
-                        <ChevronUp className="h-4 w-4" />
-                      ) : (
-                        <ChevronDown className="h-4 w-4" />
-                      )}
+                      {deviceSimOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </button>
                     {deviceSimOpen && (
                       <ul className="ml-8 mt-1 space-y-1">
@@ -242,9 +242,7 @@ export default function Sidebar({
                               href={subItem.path}
                               className={cn(
                                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                                pathname === subItem.path
-                                  ? "bg-[#EFF9FC] text-[#132939]"
-                                  : "hover:bg-muted"
+                                pathname === subItem.path ? "bg-[#EFF9FC] text-[#132939]" : "hover:bg-muted",
                               )}
                               onClick={() => setSidebarOpen(false)}
                             >
@@ -255,7 +253,7 @@ export default function Sidebar({
                       </ul>
                     )}
                   </li>
-                );
+                )
               }
               return (
                 <li key={route.path}>
@@ -263,9 +261,7 @@ export default function Sidebar({
                     href={route.path}
                     className={cn(
                       "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                      pathname === route.path
-                        ? "bg-[#EFF9FC] text-[#132939]"
-                        : "hover:bg-muted"
+                      pathname === route.path ? "bg-[#EFF9FC] text-[#132939]" : "hover:bg-muted",
                     )}
                     onClick={() => setSidebarOpen(false)}
                   >
@@ -273,13 +269,12 @@ export default function Sidebar({
                     {route.name}
                   </Link>
                 </li>
-              );
+              )
             })}
           </ul>
         </nav>
-
         {/* Bottom section with support, settings, and user info */}
-        <div className="mt-auto  pt-4 pb-6">
+        <div className="mt-auto pt-4 pb-6">
           <ul className="space-y-1 px-2">
             {bottomRoutes.map((route) => (
               <li key={route.path}>
@@ -287,9 +282,7 @@ export default function Sidebar({
                   href={route.path}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === route.path
-                      ? "bg-primary text-primary-foreground"
-                      : "hover:bg-muted"
+                    pathname === route.path ? "bg-primary text-primary-foreground" : "hover:bg-muted",
                   )}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -299,7 +292,6 @@ export default function Sidebar({
               </li>
             ))}
           </ul>
-
           {/* User info section */}
           <div className="mt-4 px-3">
             <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
@@ -307,70 +299,50 @@ export default function Sidebar({
                 <div className=" lg:block">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="rounded-full"
-                      >
+                      <Button variant="ghost" size="icon" className="rounded-full">
                         <div className="flex h-9 w-9 items-center justify-center rounded-full bg-muted">
                           <span className="text-sm font-medium text-gray-600">
-                            {userProfile?.fullname
-                              .split(" ")
-                              .map((n) => n[0])
-                              .join("")
-                              .toUpperCase()}
+                            {user?.username
+                              ? user.username
+                                  .split(" ")
+                                  .map((n) => n[0])
+                                  .join("")
+                                  .toUpperCase()
+                              : (user?.email || "U").charAt(0).toUpperCase()}
                           </span>
                         </div>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="start"
-                      className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2  "
+                      className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2"
                     >
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
-                          <p className="text-sm font-medium">
-                            {userProfile?.fullname}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {userDetails?.email}
-                          </p>
+                          <p className="text-sm font-medium">{user?.username || "User"}</p>
+                          <p className="text-xs text-muted-foreground">{user?.email || "email@example.com"}</p>
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-
                       <DropdownMenuItem asChild>
-                        <Link
-                          href="/dashboard"
-                          className="flex w-full cursor-pointer items-center"
-                        >
+                        <Link href="/dashboard" className="flex w-full cursor-pointer items-center">
                           <LayoutDashboard className="mr-2 h-4 w-4" />
                           <h1 className="text-sm">Dashboard</h1>
                         </Link>
                       </DropdownMenuItem>
-
                       <DropdownMenuItem asChild>
-                        <Link
-                          href="/wallet"
-                          className="flex w-full cursor-pointer items-center"
-                        >
+                        <Link href="/wallet" className="flex w-full cursor-pointer items-center">
                           <Wallet className="mr-2 h-4 w-4" />
                           My Wallet
                         </Link>
                       </DropdownMenuItem>
-
                       <DropdownMenuItem asChild>
-                        <Link
-                          href="/settings"
-                          className="flex w-full cursor-pointer items-center"
-                        >
+                        <Link href="/settings" className="flex w-full cursor-pointer items-center">
                           <Settings className="mr-2 h-4 w-4" />
                           Settings
                         </Link>
                       </DropdownMenuItem>
-
                       <DropdownMenuSeparator />
-
                       <DropdownMenuItem
                         onClick={handleLogout}
                         className="cursor-pointer flex items-center justify-start"
@@ -385,7 +357,7 @@ export default function Sidebar({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full hover:bg-gray-200  "
+                className="h-8 w-8 rounded-full hover:bg-gray-200"
                 onClick={handleLogout}
               >
                 <LogOut className="h-4 w-4" />
@@ -395,14 +367,10 @@ export default function Sidebar({
           </div>
         </div>
       </div>
-
       {/* Overlay for mobile */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
+        <div className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
     </>
-  );
+  )
 }

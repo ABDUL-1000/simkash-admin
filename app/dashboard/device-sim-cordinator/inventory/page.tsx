@@ -1,7 +1,7 @@
 "use client";
 
 import { DashboardLayout } from "@/components/dashboard-layout";
-import OrderProductsTable from "@/components/sim-cards";
+import OrderProductsTable from "@/components/partner-simTable";
 import { SimTableCard } from "@/components/sim-table-mobile";
 import { SimManagement } from "@/components/user-device-sim-header";
 import { StatCard } from "@/components/stat-card";
