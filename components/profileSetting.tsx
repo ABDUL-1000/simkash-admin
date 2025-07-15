@@ -9,10 +9,10 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
+import { AuthAPI } from "@/lib/API/api"
 import { toast } from "sonner"
 import { parsePhoneForBackend, validatePhoneNumber } from "@/lib/phone-number"
 import { PhoneInputComponent } from "./phoneInput"
-
 
 interface ProfileFormData {
   fullname: string
@@ -33,8 +33,9 @@ interface FormErrors {
   general?: string
 }
 
-export default function ProfileSettin() {
+export default function ProfileSetupPage() {
   const router = useRouter()
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProfileFormData>({
     fullname: "",
@@ -124,6 +125,7 @@ export default function ProfileSettin() {
     }
   }
 
+  // Enhanced phone change handler
   const handlePhoneChange = (value: string | undefined) => {
     const phoneValue = value || ""
     updateFormData("phone", phoneValue)
@@ -180,7 +182,7 @@ export default function ProfileSettin() {
       newErrors.fullname = "Full name is required"
     }
 
-    // Validate phone number using the utility function
+    // Enhanced phone validation using the utility function
     const phoneError = validatePhoneNumber(formData.phone)
     if (phoneError) {
       newErrors.phone = phoneError
@@ -260,10 +262,10 @@ export default function ProfileSettin() {
         return
       }
 
-      // Prepare the data for the API call
+      // Prepare the data for the API call with properly formatted phone
       const profileData = {
         fullname: formData.fullname.trim(),
-        phone: parsedPhone.formattedNumber, // This will be in format +2349065866898
+        phone: parsedPhone.formattedNumber, // This will be in format +2349065866898 (no leading zero)
         gender: formData.gender.toLowerCase(),
         country: formData.country,
         pin: formData.pin,
@@ -272,25 +274,47 @@ export default function ProfileSettin() {
       console.log("Sending complete profile data:", profileData)
       console.log("Formatted phone number:", parsedPhone.formattedNumber)
 
-      // Simulate API call (replace with your actual API call)
-      // const response = await AuthAPI.updateProfile(profileData)
+      // Temporarily set the token for the API call
+      const originalToken = AuthAPI.getAccessToken()
+      AuthAPI.setAccessToken(tempToken)
 
-      // For demo purposes, we'll simulate success
-      const response = { success: true, message: "Profile updated successfully!" }
+      // Use the existing updateProfile method
+      const response = await AuthAPI.updateProfile(profileData)
+
+      // Restore original token state (which should be null)
+      if (originalToken) {
+        AuthAPI.setAccessToken(originalToken)
+      } else {
+        AuthAPI.clearAccessToken()
+      }
 
       if (response.success) {
         toast.success(response.message || "Profile completed successfully!")
         setSuccessMessage("Profile and PIN created successfully! Redirecting to dashboard...")
 
-        // Clear temporary data and redirect
+        // Move token from temporary to permanent storage
+        AuthAPI.setAccessToken(tempToken)
         clearTempData()
+
+        // Redirect to dashboard
         setTimeout(() => {
           router.push("/dashboard")
         }, 1500)
       } else {
-        setErrors({
-          general: response.message || "Failed to update profile",
-        })
+        // Handle specific error cases
+        if (response.message?.includes("Session expired") || response.message?.includes("Authentication")) {
+          setErrors({
+            general: "Your session has expired. Please log in again.",
+          })
+          clearTempData()
+          setTimeout(() => {
+            router.push("/login")
+          }, 2000)
+        } else {
+          setErrors({
+            general: response.message || "Failed to update profile",
+          })
+        }
       }
     } catch (error) {
       console.error("Unexpected error:", error)
@@ -351,14 +375,14 @@ export default function ProfileSettin() {
         <div className="absolute top-4 left-10 text-sm text-black">
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center">
-              <Image src="/placeholder.svg?height=40&width=40" alt="Logo" width={40} height={40} />
+              <Image src="/simcard.png" alt="Logo" width={40} height={40} />
             </div>
             <span className="text-xl font-semibold text-slate-800">simkash</span>
           </div>
         </div>
         <div className="w-[60%] flex flex-col items-center text-center">
           <Image
-            src="/placeholder.svg?height=400&width=400"
+            src="/sim.png"
             alt="Profile Setup Illustration"
             width={400}
             height={400}
@@ -417,7 +441,7 @@ export default function ProfileSettin() {
                     {errors.fullname && <p className="text-red-500 text-xs">{errors.fullname}</p>}
                   </div>
 
-                  {/* Enhanced Phone Input */}
+                  {/* Enhanced Phone Input Component */}
                   <PhoneInputComponent
                     value={formData.phone}
                     onChange={handlePhoneChange}
@@ -527,17 +551,7 @@ export default function ProfileSettin() {
                 </div>
               )}
 
-              {/* Display success message */}
-              {successMessage && (
-                <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
-                  {successMessage}
-                </div>
-              )}
-
-              {/* Display general errors */}
-              {errors.general && (
-                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{errors.general}</div>
-              )}
+            
             </div>
           </div>
         </div>
