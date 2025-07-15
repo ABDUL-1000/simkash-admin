@@ -99,7 +99,7 @@ export default function SignupPage() {
         setSuccessMessage(
           response.message || "OTP sent successfully! Check your email."
         );
-        // Redirect to OTP verification page with source parameter
+        
         setTimeout(() => {
           router.push(
             `/signupOTP?email=${encodeURIComponent(

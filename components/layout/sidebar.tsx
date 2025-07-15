@@ -42,15 +42,14 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
   const [deviceSimOpen, setDeviceSimOpen] = useState(false)
 
   // Get user details and the clearAuthData action from the new Auth Zustand store
-  const isAgent = useDashboardStore((state) => state.dashboardData?.isAgent)
+  const isAgent = useAuthStore((state) => state.user?.isAgent)
+  const isCoordinator = useAuthStore((state) => state.user?.isStateCordinator)
   const user = useDashboardStore((state) => state.userDetails)
   const clearAuthData = useAuthStore((state) => state.clearAuthData)
-  console.log("user:", isAgent)
+  console.log("isAgent:", isAgent)
+  console.log("isCordinator:", isCoordinator)
 
-  // Determine if the user is an agent directly from the user object
-  
-
-  // Define all possible main routes with flags for agent/user visibility
+ 
   const baseRoutes = useMemo(
     () => [
       {
@@ -90,7 +89,6 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
         showForAgent: true,
         showForUser: true,
       },
-      // Device SIM R and C are hidden for both based on your request
       {
         name: "Device SIM R",
         path: "/dashboard/device-sim-regional",
@@ -193,10 +191,10 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       <Button
         variant="outline"
         size="icon"
-        className="fixed right-4 top-4 z-50 lg:hidden bg-transparent"
+        className="fixed right-4 top-4 z-50 lg:hidden b"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
-        {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+        {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5 " />}
       </Button>
       <div
         className={cn(
@@ -222,7 +220,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
               if (route.subItems) {
                 return (
                   <li key={route.name}>
-                    <button
+                    <Button
                       onClick={() => setDeviceSimOpen(!deviceSimOpen)}
                       className={cn(
                         "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -236,7 +234,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                         {route.name}
                       </div>
                       {deviceSimOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-                    </button>
+                    </Button>
                     {deviceSimOpen && (
                       <ul className="ml-8 mt-1 space-y-1">
                         {route.subItems.map((subItem) => (

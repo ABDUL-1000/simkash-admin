@@ -62,7 +62,9 @@ export function Navbar({ username, email }: NavbarProps) {
             <NotificationsModal />
           </div>
 
-          <NotificationsModal />
+           <div className=" hidden lg:block ">
+            <NotificationsModal />
+          </div>
         </div>
       </div>
     </header>

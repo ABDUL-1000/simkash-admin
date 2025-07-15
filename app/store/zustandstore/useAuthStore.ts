@@ -4,34 +4,54 @@ import { persist } from "zustand/middleware"
 import type { User } from "@/lib/type"
 
 interface AuthStore {
-  user: User | null // This 'user' object will contain 'isAgent'
-  // Removed accessToken and refreshToken from state
-  setAuthData: (user: User) => void // Removed accessToken and refreshToken from parameters
+  user: User | null
+  accessToken: string | null
+  refreshToken: string | null
+  setAuthData: (data: {
+    user: User
+    accessToken: string
+    refreshToken: string
+  }) => void
   clearAuthData: () => void
+  isAgent: () => boolean // Helper function to check agent status
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      // Removed accessToken and refreshToken from initial state
-      setAuthData: (user) => {
-        // Updated parameters
-        console.log("Setting user data in AuthStore:", user) // Added console.log
+      accessToken: null,
+      refreshToken: null,
+
+      setAuthData: (data) => {
+        console.log("Setting auth data:", data)
         set({
-          user, // This line saves the entire 'user' object, including 'isAgent'
+          user: data.user,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken
         })
       },
+
       clearAuthData: () => {
-        console.log("Clearing AuthStore data.") // Added console.log for clarity
+        console.log("Clearing auth data")
         set({
           user: null,
-          // Removed accessToken and refreshToken from clear action
+          accessToken: null,
+          refreshToken: null
         })
       },
+
+      isAgent: () => {
+        return get().user?.isAgent || false
+      }
     }),
     {
       name: "auth-storage",
-    },
-  ),
+      // Only persist the essential data
+      partialize: (state) => ({
+        user: state.user,
+        accessToken: state.accessToken
+      })
+    }
+  )
 )

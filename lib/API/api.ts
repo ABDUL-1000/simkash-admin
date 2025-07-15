@@ -11,7 +11,8 @@ import {
   PasswordChangeResponse,
 } from "../type";
 import { BASE_URL } from "@/constants/api";
-import { ru } from "date-fns/locale";
+
+import { useAuthStore } from "@/app/store/zustandstore/useAuthStore";
 
 interface SignupRequest {
   email: string;
@@ -413,9 +414,8 @@ export class AuthAPI {
     }
   }
 
-  static async login(data: LoginRequest): Promise<ApiResponse> {
+static async login(data: LoginRequest): Promise<ApiResponse> {
     try {
-    
       const response = await fetch(`${this.baseUrl}/api/v1/auth/login`, {
         method: "POST",
         headers: {
@@ -440,16 +440,13 @@ export class AuthAPI {
         };
       }
 
-      if (result.responseBody && result.responseBody.accessToken) {
-        const { accessToken } = result.responseBody;
-
-        // this.setAccessToken(accessToken)
-        console.log("Access token saved successfully");
-
-        setTimeout(() => {
-          // const savedAccessToken = this.getAccessToken()
-          // console.log("Verification - Access token saved:", !!savedAccessToken)
-        }, 100);
+      if (result.responseBody?.accessToken) {
+        // Store the login data in Zustand
+     useAuthStore.getState().setAuthData({
+          user: result.responseBody.user,
+          accessToken: result.responseBody.accessToken,
+          refreshToken: result.responseBody.refreshToken
+        });
 
         return {
           success: true,

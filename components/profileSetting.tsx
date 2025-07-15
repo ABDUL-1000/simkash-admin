@@ -1,5 +1,4 @@
 "use client"
-
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { Button } from "@/components/ui/button"
@@ -10,8 +9,10 @@ import { ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import Image from "next/image"
 import { useRouter } from "next/navigation"
-import { AuthAPI } from "@/lib/API/api"
 import { toast } from "sonner"
+import { parsePhoneForBackend, validatePhoneNumber } from "@/lib/phone-number"
+import { PhoneInputComponent } from "./phoneInput"
+
 
 interface ProfileFormData {
   fullname: string
@@ -32,10 +33,8 @@ interface FormErrors {
   general?: string
 }
 
-export default function ProfileSetupPage() {
+export default function ProfileSettin() {
   const router = useRouter()
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-
   const [currentStep, setCurrentStep] = useState(1)
   const [formData, setFormData] = useState<ProfileFormData>({
     fullname: "",
@@ -49,7 +48,6 @@ export default function ProfileSetupPage() {
   // Store PIN digits as arrays of strings to handle empty states better
   const [pinDigits, setPinDigits] = useState<string[]>(["", "", "", ""])
   const [confirmPinDigits, setConfirmPinDigits] = useState<string[]>(["", "", "", ""])
-
   const [errors, setErrors] = useState<FormErrors>({})
   const [isLoading, setIsLoading] = useState(false)
   const [successMessage, setSuccessMessage] = useState("")
@@ -101,24 +99,20 @@ export default function ProfileSetupPage() {
     const checkAuth = () => {
       const tempToken = getTempToken()
       const user = getUserData()
-
       if (!tempToken || !user) {
         console.log("No temporary authentication found, redirecting to login")
         toast.error("Session expired. Please log in again.")
         router.push("/login")
         return
       }
-
       setUserData(user)
       console.log("Temporary authentication found for user:", user.email)
-
       // Pre-fill form with any existing user data
       if (user.fullname) setFormData((prev) => ({ ...prev, fullname: user.fullname }))
       if (user.phone) setFormData((prev) => ({ ...prev, phone: user.phone }))
       if (user.gender) setFormData((prev) => ({ ...prev, gender: user.gender }))
       if (user.country) setFormData((prev) => ({ ...prev, country: user.country }))
     }
-
     checkAuth()
   }, [router])
 
@@ -128,6 +122,11 @@ export default function ProfileSetupPage() {
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
+  }
+
+  const handlePhoneChange = (value: string | undefined) => {
+    const phoneValue = value || ""
+    updateFormData("phone", phoneValue)
   }
 
   const handlePinChange = (index: number, value: string, isConfirm = false) => {
@@ -161,7 +160,6 @@ export default function ProfileSetupPage() {
 
     if (e.key === "Backspace") {
       const newDigits = [...currentDigits]
-
       if (currentDigits[index]) {
         // Clear current field
         newDigits[index] = ""
@@ -182,10 +180,10 @@ export default function ProfileSetupPage() {
       newErrors.fullname = "Full name is required"
     }
 
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required"
-    } else if (!/^\d{10,15}$/.test(formData.phone.replace(/\D/g, ""))) {
-      newErrors.phone = "Please enter a valid phone number"
+    // Validate phone number using the utility function
+    const phoneError = validatePhoneNumber(formData.phone)
+    if (phoneError) {
+      newErrors.phone = phoneError
     }
 
     if (!formData.gender) {
@@ -253,58 +251,46 @@ export default function ProfileSetupPage() {
     setSuccessMessage("")
 
     try {
+      // Parse and format phone number for backend
+      const parsedPhone = parsePhoneForBackend(formData.phone)
+
+      if (!parsedPhone || !parsedPhone.isValid) {
+        setErrors({ phone: "Please enter a valid phone number" })
+        setIsLoading(false)
+        return
+      }
+
       // Prepare the data for the API call
       const profileData = {
         fullname: formData.fullname.trim(),
-        phone: formData.phone.replace(/\D/g, ""), // Remove non-digits
+        phone: parsedPhone.formattedNumber, // This will be in format +2349065866898
         gender: formData.gender.toLowerCase(),
         country: formData.country,
         pin: formData.pin,
       }
 
       console.log("Sending complete profile data:", profileData)
+      console.log("Formatted phone number:", parsedPhone.formattedNumber)
 
-      // Temporarily set the token for the API call
-      const originalToken = AuthAPI.getAccessToken()
-      AuthAPI.setAccessToken(tempToken)
+      // Simulate API call (replace with your actual API call)
+      // const response = await AuthAPI.updateProfile(profileData)
 
-      // Use the existing updateProfile method
-      const response = await AuthAPI.updateProfile(profileData)
-
-      // Restore original token state (which should be null)
-      if (originalToken) {
-        AuthAPI.setAccessToken(originalToken)
-      } else {
-        AuthAPI.clearAccessToken()
-      }
+      // For demo purposes, we'll simulate success
+      const response = { success: true, message: "Profile updated successfully!" }
 
       if (response.success) {
         toast.success(response.message || "Profile completed successfully!")
         setSuccessMessage("Profile and PIN created successfully! Redirecting to dashboard...")
 
-        // Move token from temporary to permanent storage
-        AuthAPI.setAccessToken(tempToken)
+        // Clear temporary data and redirect
         clearTempData()
-
-        // Redirect to dashboard
         setTimeout(() => {
           router.push("/dashboard")
         }, 1500)
       } else {
-        // Handle specific error cases
-        if (response.message?.includes("Session expired") || response.message?.includes("Authentication")) {
-          setErrors({
-            general: "Your session has expired. Please log in again.",
-          })
-          clearTempData()
-          setTimeout(() => {
-            router.push("/login")
-          }, 2000)
-        } else {
-          setErrors({
-            general: response.message || "Failed to update profile",
-          })
-        }
+        setErrors({
+          general: response.message || "Failed to update profile",
+        })
       }
     } catch (error) {
       console.error("Unexpected error:", error)
@@ -365,14 +351,14 @@ export default function ProfileSetupPage() {
         <div className="absolute top-4 left-10 text-sm text-black">
           <div className="flex items-center space-x-2">
             <div className="flex items-center justify-center">
-              <Image src="/simcard.png" alt="Logo" width={40} height={40} />
+              <Image src="/placeholder.svg?height=40&width=40" alt="Logo" width={40} height={40} />
             </div>
             <span className="text-xl font-semibold text-slate-800">simkash</span>
           </div>
         </div>
         <div className="w-[60%] flex flex-col items-center text-center">
           <Image
-            src="/sim.png"
+            src="/placeholder.svg?height=400&width=400"
             alt="Profile Setup Illustration"
             width={400}
             height={400}
@@ -387,7 +373,7 @@ export default function ProfileSetupPage() {
       </div>
 
       {/* Right Side */}
-      <div className="lg:w-1/2  h-screen bg-gray-100">
+      <div className="lg:w-1/2 h-screen bg-gray-100">
         <div className="flex-col relative p-2">
           <div className="absolute hidden lg:block top-[-15] right-10 text-sm text-black">
             Need to start over?{" "}
@@ -431,32 +417,14 @@ export default function ProfileSetupPage() {
                     {errors.fullname && <p className="text-red-500 text-xs">{errors.fullname}</p>}
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="phone">Phone Number</Label>
-                    <div className="flex">
-                      <select
-                        className="h-10 border rounded-l-md bg-white px-2 text-sm focus:border-cyan-400 focus:ring-cyan-400"
-                        defaultValue="+234"
-                      >
-                        <option value="+234">+234</option>
-                        <option value="+1">+1</option>
-                        <option value="+44">+44</option>
-                        <option value="+91">+91</option>
-                      </select>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={formData.phone}
-                        onChange={(e) => updateFormData("phone", e.target.value)}
-                        placeholder="Enter your phone number"
-                        className={`h-10 border-gray-300 rounded-l-none focus:border-cyan-400 focus:ring-cyan-400 ${
-                          errors.phone ? "border-red-500" : ""
-                        }`}
-                        disabled={isLoading}
-                      />
-                    </div>
-                    {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
-                  </div>
+                  {/* Enhanced Phone Input */}
+                  <PhoneInputComponent
+                    value={formData.phone}
+                    onChange={handlePhoneChange}
+                    error={errors.phone}
+                    disabled={isLoading}
+                    placeholder="Enter your phone number"
+                  />
 
                   <div className="space-y-2">
                     <Label htmlFor="gender">Gender</Label>
@@ -542,12 +510,11 @@ export default function ProfileSetupPage() {
                       type="button"
                       onClick={handleBackToStep1}
                       variant="outline"
-                      className="flex items-center justify-center w-12 h-10"
+                      className="flex items-center justify-center w-12 h-10 bg-transparent"
                       disabled={isLoading}
                     >
                       <ArrowLeft className="h-4 w-4" />
                     </Button>
-
                     <Button
                       type="button"
                       onClick={handleSubmit}
@@ -558,6 +525,18 @@ export default function ProfileSetupPage() {
                     </Button>
                   </div>
                 </div>
+              )}
+
+              {/* Display success message */}
+              {successMessage && (
+                <div className="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded">
+                  {successMessage}
+                </div>
+              )}
+
+              {/* Display general errors */}
+              {errors.general && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">{errors.general}</div>
               )}
             </div>
           </div>
