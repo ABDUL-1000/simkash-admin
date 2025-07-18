@@ -245,3 +245,17 @@ export interface ProfileResponse {
   user: User
   userProfile: UserProfile
 }
+export interface DashboardData {
+  transaction: Transaction[];
+  userDetails: UserDetails;
+  userProfile: UserProfile;
+  wallet: Wallet;
+  isAgent: boolean;
+}
+export interface UserDetails {
+  id: number;
+  username: string | null;
+  email: string;
+  phone: string;
+  password: string;
+}
