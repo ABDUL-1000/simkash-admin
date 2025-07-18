@@ -18,11 +18,15 @@ export default function DashboardLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+    
       <body className={sora.className}>
+       
+
         <div>
           {children}
           <Toaster position="top-right" />
         </div>
+      
       </body>
     </html>
   );

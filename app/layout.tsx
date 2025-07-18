@@ -2,6 +2,9 @@ import type { Metadata } from "next";
 import { Sora } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
+import { DashboardLayout } from "@/components/dashboard-layout";
+import ReactQueryProvider from "@/components/react-query-provider";
+
 
 // Initialize the Sora font
 const sora = Sora({
@@ -22,10 +25,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressContentEditableWarning className={`${sora.variable}`}>
+    
+
       <body className="font-sora">
         <Toaster position="top-center" />
-        {children}
+        <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>
+    
     </html>
   );
 }

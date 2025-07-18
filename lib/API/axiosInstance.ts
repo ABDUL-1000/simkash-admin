@@ -1,13 +1,19 @@
 import { BASE_URL } from "@/constants/api";
 import axios from "axios";
+import { AuthAPI } from "./api";
 
 console.log("API Base URL:", process.env.BASE_URL);
 
+const token = AuthAPI.getAccessToken();
+const BaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+console.log("API Base URL:", BaseUrl);
+
 const api = axios.create({
-  baseURL: BASE_URL,
+  baseURL: BaseUrl,
   headers: {
     Accept: "application/json",
     "Content-Type": "application/json",
+    ...(token && { Authorization: `Bearer ${token}` }),
   },
   withCredentials: true,
 });
@@ -21,8 +27,8 @@ function getCookie(name: string) {
 
 api.interceptors.request.use(
   (config) => {
-    const token = getCookie("token");
-    console.log("Token:", token);
+    const token = AuthAPI.getAccessToken();
+    console.log("Token from interceptor:", token);
     if (token) {
       config.headers["Authorization"] = `Bearer ${token}`;
     }

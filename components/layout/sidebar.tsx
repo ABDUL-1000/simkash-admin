@@ -1,4 +1,3 @@
-// components/sidebar.tsx (Modified)
 "use client"
 import Link from "next/link"
 import Image from "next/image"
@@ -19,7 +18,7 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState, useMemo } from "react"
-import { AuthAPI } from "@/lib/API/api" // Assuming AuthAPI exists and has a logout method
+import { AuthAPI } from "@/lib/API/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,7 +27,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { useAuthStore } from "@/app/store/zustandstore/useAuthStore" // Import the new auth store
+import { useAuthStore } from "@/app/store/zustandstore/useAuthStore"
 import { useDashboardStore } from "@/app/store/zustandstore/useStore"
 
 interface SidebarProps {
@@ -39,17 +38,27 @@ interface SidebarProps {
 export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmail.com" }: SidebarProps) {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [deviceSimOpen, setDeviceSimOpen] = useState(false)
+  
+  // Individual state for each dropdown
+  const [dropdownStates, setDropdownStates] = useState({
+    cordinator: false,
+    partner: false,
+    deviceSim: false,
+    // Add more dropdown states here as needed
+  })
 
-  // Get user details and the clearAuthData action from the new Auth Zustand store
+  const toggleDropdown = (dropdownName: keyof typeof dropdownStates) => {
+    setDropdownStates(prev => ({
+      ...prev,
+      [dropdownName]: !prev[dropdownName]
+    }))
+  }
+
   const isAgent = useAuthStore((state) => state.user?.isAgent)
   const isCoordinator = useAuthStore((state) => state.user?.isStateCordinator)
   const user = useDashboardStore((state) => state.userDetails)
   const clearAuthData = useAuthStore((state) => state.clearAuthData)
-  console.log("isAgent:", isAgent)
-  console.log("isCordinator:", isCoordinator)
 
- 
   const baseRoutes = useMemo(
     () => [
       {
@@ -68,19 +77,45 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
         showForUser: true,
       },
       {
-        name: "Dashboard-I",
-        path: "/inevestor-dashboard",
+        name: "User Management",
+        path: "/dashboard/userManagement",
         icon: (
           <Image
-            src="/homeIcon.png"  
-            alt="Investor Dashboard Icon"
+            src="/management.png"  
+            alt="management Icon"
             width={30}
             height={30}
             className="h-5 w-5"
           />
         ),
-        showForAgent: false,
-        showForUser: false,
+        showForAgent: true,
+        showForUser: true,
+      },
+      {
+        name: "Cordinators",
+        path: "/dashboard/device-sim-cordinator",
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Cordinator List", path: "/dashboard/device-sim-cordinator/cordinator-list" },
+          { name: "Applications", path: "/dashboard/device-sim-cordinator/cordinator-applications" },
+          { name: "Analytics", path: "/dashboard/device-sim-cordinator/cordinator-analytics" },
+        ],
+        showForAgent: true,
+        showForUser: true,
+        dropdownKey: "cordinator"
+      },
+      {
+        name: "Partners",
+        path: "/dashboard/device-sim-partner",
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Partner List", path: "/dashboard/device-sim-partner/partner-list" },
+          { name: "Applications", path: "/dashboard/device-sim-partner/partner-applications" },
+          { name: "Analytics", path: "/dashboard/device-sim-partner/partner-analytics" },
+        ],
+        showForAgent: true,
+        showForUser: true,
+        dropdownKey: "partner"
       },
       {
         name: "My Wallet",
@@ -90,46 +125,16 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
         showForUser: true,
       },
       {
-        name: "Device SIM R",
-        path: "/dashboard/device-sim-regional",
-        icon: <CreditCard className="h-5 w-5" />,
-        subItems: [
-          { name: "Overview", path: "/dashboard/device-sim-regional/overview" },
-          { name: "Inventory", path: "/dashboard/device-sim-regional/inventory" },
-          { name: "Partners", path: "/dashboard/device-sim-regional/partners" },
-        ],
-        showForAgent: false,
-        showForUser: false,
-      },
-      {
-        name: "Device SIM C",
-        path: "/dashboard/device-sim-cordinator",
-        icon: <CreditCard className="h-5 w-5" />,
-        subItems: [
-          { name: "Overview", path: "/dashboard/device-sim-cordinator/overview" },
-          { name: "Inventory", path: "/dashboard/device-sim-cordinator/inventory" },
-          { name: "Partners", path: "/dashboard/device-sim-cordinator/partners" },
-        ],
-        showForAgent: false,
-        showForUser: false,
-      },
-      {
-        name: "Device SIM", // This is for regular users
+        name: "Device SIM",
         path: "/dashboard/device-sim",
         icon: <CreditCard className="h-5 w-5" />,
-        showForAgent: false,
-        showForUser: true,
-      },
-      {
-        name: "Device SIM ", // This is for agents
-        path: "/dashboard/device-sim-partner", // Changed path to be distinct for partner
-        icon: <CreditCard className="h-5 w-5" />,
         subItems: [
-          { name: "Overview", path: "/dashboard/device-sim-partner/overview" },
-          { name: "Inventory", path: "/dashboard/device-sim-partner/inventory" },
+          { name: "Overview", path: "/dashboard/device-sim/overview" },
+          { name: "Inventory", path: "/dashboard/device-sim/inventory" },
         ],
         showForAgent: true,
         showForUser: false,
+        dropdownKey: "deviceSim"
       },
       {
         name: "Bill Payments",
@@ -149,14 +154,12 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
     [],
   )
 
-  // Filter main routes based on isAgent status
   const mainRoutesFiltered = useMemo(() => {
     if (isAgent === true) {
       return baseRoutes.filter((route) => route.showForAgent)
     } else if (isAgent === false) {
       return baseRoutes.filter((route) => route.showForUser)
     }
-   
     return baseRoutes.filter((route) => route.showForUser)
   }, [isAgent, baseRoutes])
 
@@ -174,28 +177,21 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
   ]
 
   const handleLogout = async () => {
-    // Call your authentication API to log out
-    // Ensure AuthAPI.logout() clears server-side sessions/cookies if applicable
     await AuthAPI.logout()
-    // Clear authentication data from the Zustand store
     clearAuthData()
-    // Optionally redirect to login page
-    // router.push('/login');
   }
-
-  const isDeviceSimActive = pathname.startsWith("/dashboard/device-sim")
 
   return (
     <>
-      {/* Mobile menu button - moved to the right */}
       <Button
         variant="outline"
         size="icon"
-        className="fixed right-4 top-4 z-50 lg:hidden b"
+        className="fixed right-4 top-4 z-50 lg:hidden"
         onClick={() => setSidebarOpen(!sidebarOpen)}
       >
-        {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5 " />}
+        {sidebarOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
       </Button>
+      
       <div
         className={cn(
           "fixed inset-y-0 left-0 z-40 flex w-64 flex-col bg-background transition-transform duration-200 ease-in-out border-r",
@@ -213,29 +209,32 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
             <span className="text-xl font-bold text-slate-800">simkash</span>
           </Link>
         </div>
-        {/* Main navigation links */}
+        
         <nav className="flex-1 overflow-auto py-4">
           <ul className="space-y-1 px-2">
             {mainRoutesFiltered.map((route) => {
               if (route.subItems) {
+                const isActive = pathname.startsWith(route.path)
+                const isOpen = dropdownStates[route.dropdownKey as keyof typeof dropdownStates]
+                
                 return (
                   <li key={route.name}>
                     <Button
-                      onClick={() => setDeviceSimOpen(!deviceSimOpen)}
+                      variant='ghost'
+                      onClick={() => toggleDropdown(route.dropdownKey as keyof typeof dropdownStates)}
                       className={cn(
-                        "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                        isDeviceSimActive && route.path.startsWith("/dashboard/device-sim")
-                          ? "bg-[#EFF9FC] text-[#132939]"
-                          : "hover:bg-muted",
+                        "flex w-full items-center justify-between gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                        isActive ? "bg-[#EEF9FF] text-black" : "hover:bg-muted",
                       )}
                     >
                       <div className="flex items-center gap-3">
                         {route.icon}
                         {route.name}
                       </div>
-                      {deviceSimOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                      {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                     </Button>
-                    {deviceSimOpen && (
+                    
+                    {isOpen && (
                       <ul className="ml-8 mt-1 space-y-1">
                         {route.subItems.map((subItem) => (
                           <li key={subItem.path}>
@@ -243,7 +242,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                               href={subItem.path}
                               className={cn(
                                 "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                                pathname === subItem.path ? "bg-[#EFF9FC] text-[#132939]" : "hover:bg-muted",
+                                pathname === subItem.path ? "bg-[#EEF9FF] text-black" : "hover:bg-muted",
                               )}
                               onClick={() => setSidebarOpen(false)}
                             >
@@ -256,6 +255,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                   </li>
                 )
               }
+              
               return (
                 <li key={route.path}>
                   <Link
@@ -274,7 +274,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
             })}
           </ul>
         </nav>
-        {/* Bottom section with support, settings, and user info */}
+        
         <div className="mt-auto pt-4 pb-6">
           <ul className="space-y-1 px-2">
             {bottomRoutes.map((route) => (
@@ -283,7 +283,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                   href={route.path}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    pathname === route.path ? "bg-primary text-primary-foreground" : "hover:bg-muted",
+                    pathname === route.path ? "bg-[#EEF9FF] text-black" : "hover:bg-muted",
                   )}
                   onClick={() => setSidebarOpen(false)}
                 >
@@ -293,11 +293,11 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
               </li>
             ))}
           </ul>
-          {/* User info section */}
+          
           <div className="mt-4 px-3">
             <div className="flex items-center justify-between rounded-md bg-gray-50 p-3">
               <div className="flex items-center gap-3">
-                <div className=" lg:block">
+                <div className="lg:block">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="rounded-full">
@@ -316,7 +316,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="start"
-                      className=" bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2"
+                      className="bg-white w-full p-6 border border-gray-300 rounded-2xl space-y-2"
                     >
                       <DropdownMenuLabel>
                         <div className="flex flex-col space-y-1">
@@ -368,7 +368,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
           </div>
         </div>
       </div>
-      {/* Overlay for mobile */}
+      
       {sidebarOpen && (
         <div className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}

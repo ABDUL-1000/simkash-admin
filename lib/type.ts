@@ -1,31 +1,101 @@
 export interface ApiResponse<T = any> {
-  responseSuccessful: boolean;
-  responseMessage: string;
-  responseBody?: T;
+  responseSuccessful: boolean
+  responseMessage: string
+  responseBody?: T
 }
 
-// User types
-export interface User {
-  id: number;
-  username: string | null;
-  email: string;
-  phone: string;
-  password: string;
-  status: string;
-  pin: string | null;
-  isVerified: boolean;
-  source: string;
-  fmcToken: string | null;
-  refereshToken: string | null;
-  lastLogin: string;
-  createdAt: string;
-  updatedAt: string;
+export interface Pagination {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
 }
+
+export interface User {
+  id: number
+  username: string | null
+  email: string
+  phone: string
+  password: string
+  status: string
+  pin: string | null
+  isVerified: boolean
+  source: string
+  fmcToken: string | null
+  refereshToken: string | null
+  lastLogin: string
+  createdAt: string
+  updatedAt: string
+  isProfileComplete: boolean
+  isAgent: boolean
+  isStateCordinator: boolean
+}
+
+export interface AllUsersResponse {
+  users: User[]
+  pagination: Pagination
+}
+
+export interface UserDetail {
+  id: number
+  status: string
+  firstName: string
+  lastName: string
+  email: string
+  password?: string
+  createdAt: string
+  updatedAt: string
+  isVerified: boolean
+}
+
+export interface UserProfile {
+  id: number
+  status: string
+  user_id: number
+  fullname: string
+  gender: string
+  country: string
+  currency: string
+  profile_picture: string
+  createdAt: string
+  updatedAt: string
+  
+}
+
+export interface UserDetailsResponseBody {
+  totalTransactions: number
+  totalPendingTransactions: number
+  totalInvestment: number
+  user: UserDetail
+  userProfile: UserProfile
+}
+
+export interface Transaction {
+  id: number
+  wallet_id: number
+  transaction_type: string
+  amount: string
+  transaction_reference: string
+  status: "success" | "failed" | "pending"
+  description: string
+  metadata: string // JSON string
+  recipientId: number | null
+  processed_at: string // Date string
+  createdAt: string // ISO date string
+  updatedAt: string // ISO date string
+}
+
+export interface UserTransactionsResponseBody {
+  transactions: Transaction[]
+  pagination: Pagination
+}
+
 export interface PasswordChangeResponse {
   responseSuccessful: boolean
   responseMessage: string
   responseBody: User
 }
+
 export interface CoordinatorRegistrationRequest {
   fullname: string
   email: string
@@ -36,9 +106,10 @@ export interface CoordinatorRegistrationRequest {
   state: string
   lga: string
   address: string
-  reason: string
   idCard: string
+  reason: string
 }
+
 export interface CoordinatorRegistrationResponse {
   responseSuccessful: boolean
   responseMessage: string
@@ -49,169 +120,78 @@ export interface PasswordChangeRequest {
   new_password: string
   confirm_new_password: string
 }
-export interface UserProfile {
-  id: number;
-  user_id: number;
-  fullname: string;
-  gender: string;
-  country: string;
-  currency: string;
-  profile_picture: string;
-  createdAt: string;
-  updatedAt: string;
+
+export interface ModalProps {
+  open: boolean
+  onClose: () => void
 }
 
-// Specific response types
-export interface LoginResponse {
-  user: User;
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface VerifyOtpResponse {
-  accessToken: string;
-}
-
-export interface ProfileResponse {
-  user: User;
-  userProfile: UserProfile;
-}
-export  interface ModalProps {
-  open: boolean;
-  onClose: () => void;
-}
 export interface TopUpRequest {
-  amount: number;
-  email?: string;
-  callback_url?: string;
+  amount: number
+  email?: string
+  callback_url?: string
 }
 
 export interface TopUpResponse {
-  authorization_url: string;
-  access_code: string;
-  reference: string;
+  authorization_url: string
+  access_code: string
+  reference: string
 }
+
 export interface DashboardResponse {
-  balance: string;
+  balance: string
   transactions: Array<{
-    date: string;
-    type: string;
-    description: string;
-    amount: string;
-    status: "Completed" | "Pending" | "Failed";
-  }>;
-  // Add any other fields your dashboard API returns
-}
-
-export interface User {
-  id: number
-  username: string | null
-  email: string
-  phone: string
- 
-  status: string
-
-  isProfileComplete: boolean
-  isVerified: boolean
-  source: string
-  fmcToken: string | null
-  refereshToken: string | null
-  lastLogin: string
-  createdAt: string
-  updatedAt: string
-  isAgent: boolean // Crucial for your logic
-  isStateCordinator: boolean
+    date: string
+    type: string
+    description: string
+    amount: string
+    status: "Completed" | "Pending" | "Failed"
+  }>
 }
 
 export interface PaymentRequest {
-  amount: number;
-  // Add any other fields your payment API requires
+  amount: number
 }
+
 export interface DataRequest {
-   serviceID: string;
-  billersCode: string;
-  variation_code: string;
-  amount: number;
-  phone: string;
-  pin: number;
+  serviceID: string
+  billersCode: string
+  variation_code: string
+  amount: number
+  phone: string
+  pin: number
 }
+
 export interface CableBillRequest {
-  amount: string;
-  phone: string;
-  pin: number;
-  serviceID?: string; 
-  billersCode: string;
-  variation_code: string;
+  amount: string
+  phone: string
+  pin: number
+  serviceID?: string
+  billersCode: string
+  variation_code: string
 }
-export interface CableBillRequest {
-  amount: string;
-  phone: string;
-  pin: number;
-  serviceID?: string; 
-  billersCode: string;
-  variation_code: string;
-}
+
 export interface ElectricBillRequest {
-  amount: string;
-  phone: string;
-  pin: number;
-  serviceID?: string; 
-  billersCode: string;
-  variation_code: string;
+  amount: string
+  phone: string
+  pin: number
+  serviceID?: string
+  billersCode: string
+  variation_code: string
 }
+
 export interface AirtimeRequest {
-  amount: number;
-  phone: string;
-  pin: number;
-  network?: string; 
+  amount: number
+  phone: string
+  pin: number
+  network?: string
 }
+
 export interface Network {
   id: string
   name: string
   note: string
   image: string
-}
-export interface ApiResponse<T> {
-  status: boolean
-  message: string
-  data: T | null
-}
-
-export interface User {
-
-  firstName: string
-  lastName: string
-  email: string
-  phone: string
-  role: string
-  
-}
-
-export interface PaginatedResponse<T> {
-  data: T[]
-  meta: {
-    total: number
-    per_page: number
-    current_page: number
-    last_page: number
-    first_page: number
-    first_page_url: string
-    last_page_url: string
-    next_page_url: string | null
-    previous_page_url: string | null
-  }
-}
-
-export interface Transaction {
-  id: string
-  userId: string
-  amount: number
-  type: string
-  status: string
-  reference: string
-  description: string
-  createdAt: Date
-  updatedAt: Date
 }
 
 export interface Wallet {
@@ -240,42 +220,28 @@ export interface DataPlansResponse {
     variations: DataPlan[]
   }
 }
-
-  
- interface DataPlan {
+export interface AllUsersResponse {
+  users: User[]
+  pagination: Pagination
+}
+interface DataPlan {
   variation_code: string
   name: string
   variation_amount: string
   fixedPrice: string
 }
 
-
-export interface UserDetails {
-  id: number;
-  username: string | null;
-  email: string;
-  phone: string;
-  password: string;
+export interface LoginResponse {
+  user: User
+  accessToken: string
+  refreshToken: string
 }
 
-export interface UserProfile {
-  id: number;
-  fullname: string;
-  gender: string;
-  country: string;
-  currency: string;
-  profile_picture: string;
-  user_id: number;
-  createdAt: string;
-  updatedAt: string;
+export interface VerifyOtpResponse {
+  accessToken: string
 }
 
-
-
-export interface DashboardData {
-  transaction: Transaction[];
-  userDetails: UserDetails;
-  userProfile: UserProfile;
-  wallet: Wallet;
-  isAgent: boolean;
+export interface ProfileResponse {
+  user: User
+  userProfile: UserProfile
 }

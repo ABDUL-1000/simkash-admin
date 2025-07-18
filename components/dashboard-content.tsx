@@ -1,316 +1,113 @@
-"use client";
+"use client"
+import Image from "next/image"
+import { useState } from "react"
+import { DashboardStatCard } from "./dashboard-stat"
+import { RevenueTrendsChart } from "./RevenueTrendCharts"
+import { BackerChart } from "./BackarCharts"
 
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "./ui/card";
-import Image from "next/image";
-import QuickActions from "./quickAction";
-import TopUpModal from "./modals/topUpModal";
-import WithdrawModal from "./modals/withdrawModal";
-import { Skeleton } from "./ui/skeleton";
-import { AuthAPI } from "@/lib/API/api";
-import { Eye, EyeOff } from "lucide-react";
-import { useDashboardStore } from "@/app/store/zustandstore/useStore";
-import { set } from "zod";
-import SendMoneyToOtherBankModal from "./modals/sendMoneyToOtherBanksModal";
-import SendMoneyToSimkashModal from "./modals/sendToSimkashModal";
-import { SendMoneySelectionModal } from "./modals/sendMoneySelectMoodal";
-import { useRouter } from "next/navigation";
+import { Skeleton } from "@/components/ui/skeleton"
+import { useDashboardData } from "@/hooks/use-dashboard-overview"
 
-interface Transaction {
-  id: number;
-  amount: string;
-  transaction_type: string;
-  description: string;
-  status: "success" | "Pending" | "Failed";
-  createdAt: string;
-}
+export default function DashboardContent() {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
-interface DashboardData {
-  date: string;
-  wallet: {
-    balance: string;
-  };
-  transaction: Transaction[];
-}
+  const { dashboardData, isLoading, isError, error } = useDashboardData()
 
-export function DashboardContent() {
-  const router = useRouter();
-  const [openModal, setOpenModal] = useState<string | null>(null);
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
-    null
-  );
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showBalance, setShowBalance] = useState(false);
-  const setDashboardDatas = useDashboardStore(
-    (state) => state.setDashboardData
-  );
+  const handleSubmit = (data: Record<string, string>) => {
+    console.log("SIM Data:", data)
+    setIsModalOpen(false)
+  }
 
-  useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        setLoading(true);
-        const response = await AuthAPI.getDashboardData();
-       if (!response.success) {
-     
-        router.push("/login");
-        return;
-      }
-        console.log("response", response);
-
-         const data = response.data;
-      setDashboardData(data);
-      setDashboardDatas(data);
-
-      } catch (err) {
-        setError("An unexpected error occurred");
-        console.error("Dashboard data fetch error:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchDashboardData();
-  }, [router, setDashboardDatas]);
-  const toggleBalanceVisibility = () => {
-    setShowBalance(!showBalance);
-  };
-
-  const quickActions = [
-    {
-      icon: "/Vector1.png",
-      label: "Top Up",
-      onClick: () => setOpenModal("topup"),
-    },
-    // { icon: "/Vector.png", label: "Send to simkash", onClick: () => setOpenModal("send-to-simkash") },
-    // { icon: "/Vector.png", label: "Send to other bank", onClick: () => setOpenModal("send") },
-    {
-      icon: "/Vector.png",
-      label: "Send Money",
-      onClick: () => setOpenModal("send-money"),
-    },
-    {
-      icon: "/Vector3.png",
-      label: "Withdraw",
-      onClick: () => setOpenModal("withdraw"),
-    },
-    {
-      icon: "/Vector4.png",
-      label: "Add SIM",
-      onClick: () => setOpenModal("addsim"),
-    },
-    { icon: "/icon5.png", label: "More", onClick: () => setOpenModal("more") },
-  ];
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true, 
-    });
-  };
-
-  const formatAmount = (amount: string) => {
-    const num = parseFloat(amount);
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-    }).format(num);
-  };
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="p-6 space-y-6">
-        {/* Wallet Balance Skeleton */}
-        <Card className="bg-white">
-          <CardContent className="lg:pt-6 pt-1">
-            <div className="lg:text-center text-start space-y-4">
-              <Skeleton className="h-6 w-32 mx-auto" />
-              <div className="flex items-center lg:justify-center space-x-2">
-                <Skeleton className="h-12 w-24" />
-                <Skeleton className="h-6 w-6 rounded-full" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Quick Actions Skeleton */}
-        <div className="bg-white p-4">
-          <div className="flex justify-between">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-12 rounded-full" />
-            ))}
-          </div>
-        </div>
-
-        {/* Transactions Skeleton */}
-        <Card className="shadow-none">
-          <CardContent className="p-0 shadow-none">
-            <div className="grid grid-cols-5 gap-4 p-4 bg-[#FAFAFA] rounded-full m-2">
-              {[...Array(5)].map((_, i) => (
-                <Skeleton key={i} className="h-4 w-full" />
-              ))}
-            </div>
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="grid grid-cols-5 gap-4 p-4 border-b">
-                {[...Array(5)].map((_, j) => (
-                  <Skeleton key={j} className="h-4 w-full" />
+      <div className="flex flex-1 flex-col p-4 font-sora">
+        <div className="@container/main flex flex-1 flex-col gap-2">
+          <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            <div className="bg-[#FFFFFF]">
+              <p className="px-4 py-2 text-[#303237]">Overview</p>
+              <div className="grid bg-[#FFFFFF] p-4 mt-2 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="rounded-lg border bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-2 min-w-[150px]"
+                  >
+                    <Skeleton className="h-5 w-24" />
+                    <Skeleton className="h-8 w-32" />
+                    <Skeleton className="h-4 w-40" />
+                  </div>
                 ))}
               </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-
-
-  if (!dashboardData ) {
-    return (
-      <div className="p-6 text-center text-gray-500">
-        No dashboard data available
-      </div>
-    );
-  }
-
-  return (
-    <div className="p-6 space-y-6">
-      {/* Wallet Balance Card */}
-      <Card className="bg-white animate-fade-in">
-        <CardContent className="lg:pt-6 pt-1">
-          <div className="lg:text-center text-start">
-            <h3 className="lg:text-lg text-sm font-medium text-gray-600 mb-2">
-              Wallet Balance
-            </h3>
-            <div className="flex items-center lg:justify-center">
-              <span className="lg:text-5xl text-2xl font-bold">
-                {showBalance ? (
-                  <span className="text-black">
-                    {formatAmount(dashboardData.wallet.balance)}
-                  </span>
-                ) : (
-                  <span className="text-black">••••</span>
-                )}
-              </span>
-              <button
-                className="ml-4 text-gray-500 hover:text-gray-700"
-                onClick={toggleBalanceVisibility}
-                aria-label={showBalance ? "Hide balance" : "Show balance"}
-              >
-                {showBalance ? (
-                  <EyeOff className="w-5 h-5" />
-                ) : (
-                  <Eye className="w-5 h-5" />
-                )}
-              </button>
+            </div>
+            <div className="flex gap-2">
+              <div className="w-[70%]">
+                <Skeleton className="h-[300px] w-full rounded-lg" />
+              </div>
+              <div className="w-[30%]">
+                <Skeleton className="h-[300px] w-full rounded-lg" />
+              </div>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-
-
-      {/* Quick Actions */}
-      <div className="bg-white p-4 animate-fade-in">
-        <QuickActions actions={quickActions} />
+        </div>
       </div>
+    )
+  }
 
-      {/* Modals */}
-      <TopUpModal
-        open={openModal === "topup"}
-        onClose={() => setOpenModal(null)}
-      />
-      <SendMoneyToSimkashModal
-        isOpen={openModal === "send-to-simkash"}
-        onClose={() => setOpenModal(null)}
-      />
-      <SendMoneySelectionModal
-        isOpen={openModal === "send-money"}
-        onClose={() => setOpenModal(null)}
-        onSelectSimkash={() => {
-          setOpenModal("send-to-simkash");
-        }}
-        onSelectOtherBank={() => {
-          setOpenModal("send-to-other");
-        }}
-      />
+  if (isError) {
+    return (
+      <div className="flex flex-1 flex-col p-4 font-sora items-center justify-center text-red-500">
+        <p>Error loading dashboard data: {error?.message} please refresh..</p>
+      </div>
+    )
+  }
 
-      <SendMoneyToOtherBankModal
-        isOpen={openModal === "send-to-other"}
-        onClose={() => setOpenModal(null)}
-      />
-      <WithdrawModal
-        isOpen={openModal === "withdraw"}
-        onClose={() => setOpenModal(null)}
-      />
 
-      {/* Transactions */}
-      <div className="animate-fade-in">
-        <Card className="shadow-none">
-          <CardContent className="p-0 shadow-none">
-            <div className="grid grid-cols-5 lg:text-sm text-[0.5rem] font-medium text-gray-500 bg-[#FAFAFA] rounded-full m-2">
-              <div className="p-4">Date</div>
-              <div className="p-4">Type</div>
-              <div className="p-4">Description</div>
-              <div className="p-4">Amount</div>
-              <div className="p-4">Status</div>
+  const stats = [
+    {
+      title: "Total Revenue",
+      icon: <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4" />,
+      value: `₦${dashboardData?.revenue?.toLocaleString() || "0"}`,
+      note: "",
+      minWidth: "min-w-[150px]",
+    },
+    {
+      title: "Total Active Users",
+      icon: <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4" />,
+      value: dashboardData?.users || 0,
+      note: "",
+      minWidth: "min-w-[150px]",
+    },
+    {
+      title: "SIMs Activated",
+      icon: <Image src="/sim-icon-dark.png" alt="logo" width={20} height={30} className="h-5 w-4" />,
+      value: dashboardData?.activatedSims || 0,
+      note: "Updated 10m",
+      minWidth: "min-w-[150px]",
+    },
+  ]
+
+  return (
+    <div className="flex flex-1 flex-col p-4 font-sora">
+      <div className="@container/main flex flex-1 flex-col gap-2">
+        <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+          <div className="bg-[#FFFFFF]">
+            <p className="px-4 py-2 text-[#303237]">Overview</p>
+            <div className="grid bg-[#FFFFFF] p-4 mt-2 gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {stats.map((stat, i) => (
+                <DashboardStatCard key={i} {...stat} />
+              ))}
             </div>
-
-            {dashboardData.transaction.length > 0 ? (
-              dashboardData.transaction.map((transaction) => (
-                <div
-                  key={transaction.id}
-                  className="grid grid-cols-5 text-sm border-b last:border-0"
-                >
-                  <div className="p-4">{formatDate(transaction.createdAt)}</div>
-                  <div className="p-4 capitalize">
-                    {transaction.transaction_type}
-                  </div>
-                  <div className="p-4">{transaction.description}</div>
-                  <div className="p-4">{formatAmount(transaction.amount)}</div>
-                  <div className="p-4">
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        transaction.status === "success"
-                          ? "bg-green-100 text-green-800"
-                          : transaction.status === "Pending"
-                          ? "bg-yellow-100 text-yellow-800"
-                          : "bg-red-100 text-red-800"
-                      }`}
-                    >
-                      {transaction.status}
-                    </span>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="py-16 flex flex-col items-center justify-center text-center">
-                <div className="mb-4">
-                  <Image
-                    src="/Vector6.png"
-                    alt="Empty transactions"
-                    width={100}
-                    height={100}
-                    priority
-                  />
-                </div>
-                <h4 className="text-gray-500 font-medium mb-1">
-                  You haven't made any transactions yet.
-                </h4>
-                <p className="text-gray-400 text-sm">
-                  Once you start using Simkash, your activities will show up
-                  here.
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          </div>
+          <div className="flex gap-2">
+            <div className="w-[70%]">
+              <RevenueTrendsChart />
+            </div>
+            <div className="w-[30%]">
+              <BackerChart />
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  );
+  )
 }

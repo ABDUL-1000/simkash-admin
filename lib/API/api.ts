@@ -416,7 +416,7 @@ export class AuthAPI {
 
 static async login(data: LoginRequest): Promise<ApiResponse> {
     try {
-      const response = await fetch(`${this.baseUrl}/api/v1/auth/login`, {
+      const response = await fetch(`${this.baseUrl}/api/v1/admin/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -2663,7 +2663,7 @@ static async payWaecBill(data: {
 
       console.log("Fetching dashboard data...");
 
-      const response = await fetch(`${this.baseUrl}/api/v1/user/dashboard`, {
+      const response = await fetch(`${this.baseUrl}/api/v1/admin/user/dashboard`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -2673,10 +2673,7 @@ static async payWaecBill(data: {
 
       const result = await response.json();
       console.log("Dashboard response:", result.responseBody);
-      console.log(
-        "Dashboard user details:",
-        result.responseBody.wallet.balance
-      );
+
     
 
 

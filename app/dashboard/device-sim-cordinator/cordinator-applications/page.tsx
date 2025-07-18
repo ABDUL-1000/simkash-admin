@@ -9,6 +9,7 @@ import { useState } from "react"
 import PartnerSimTable from "@/components/partner-simTable"
 import PartnerSimRegistrationModal from "@/components/modals/partner-sim-reg-modal"
 import PartnerOverViewSimTable from "@/components/partner-List-table"
+import PartnerApplicationTable from "@/components/PartnerApplicationTable"
 
 
 const stats = [
@@ -79,13 +80,13 @@ export default function SimPage() {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-1 flex-col p-4 font-sora">
+      <div className="w-full p-4 bg-[#fff] font-sora">
         {/* PageHeader with the modal trigger */}
         <PageHeader
-          title="Your Partner:"
-          subtitle="You don't have partner yet"
-          onAddClick={() => setIsModalOpen(true)}
-          addLabel="Add new Sim"
+          title="View submitted partner applications and verify their details before approving."
+          subtitle=""
+         
+        
         />
 
         {/* SIM Registration Modal */}
@@ -97,15 +98,8 @@ export default function SimPage() {
 
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-            <div className="bg-[#FFFFFF]">
-              <p className="px-4 py-2 text-[#303237]">Overview</p>
-              <div className="grid bg-[#FFFFFF] p-4 mt-2 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {stats.map((stat, i) => (
-                  <StatCard key={i} {...stat} />
-                ))}
-              </div>
-            </div>
-            <PartnerOverViewSimTable />
+          
+            <PartnerApplicationTable />
             <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
               {mobileTable.map((mobile, i) => (
                 <SimTableCard key={i} {...mobile} />
