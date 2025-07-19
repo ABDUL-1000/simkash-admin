@@ -46,20 +46,24 @@ export function BackerChart() {
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-center h-80 relative">
-          <ResponsiveContainer width="100%" height="100%">
-            <RadialBarChart
-              cx="50%"
-              cy="50%"
-              innerRadius="50%"
-              outerRadius="90%"
-              barSize={13}
-              data={data}
-              startAngle={90}
-              endAngle={450}
-            >
-              <RadialBar minAngle={15} background  dataKey="value" cornerRadius={10} />
-            </RadialBarChart>
-          </ResponsiveContainer>
+      <ResponsiveContainer width="100%" height="100%">
+  <RadialBarChart
+    cx="50%"
+    cy="50%"
+    innerRadius="50%"
+    outerRadius="90%"
+    barSize={13}
+    data={data}
+    startAngle={90}
+    endAngle={450}
+  >
+    <RadialBar 
+      minAngle={15} 
+      dataKey="value" 
+      cornerRadius={10} 
+    />
+  </RadialBarChart>
+</ResponsiveContainer>
 
           {/* Center Content */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
