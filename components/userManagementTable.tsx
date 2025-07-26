@@ -59,9 +59,7 @@ const UserManagementTable: React.FC = () => {
   }
 
   const handleFilterToggle = () => {
-    // This is a placeholder for actual filter logic.
-    // You might open a dialog/dropdown to select filter options.
-    // For now, let's toggle between "active" and "" (all)
+
     setFilterStatus((prev) => (prev === "active" ? "" : "active"))
     setCurrentPage(1) // Reset to first page on filter change
   }
@@ -232,8 +230,8 @@ interface UserDetailsViewProps {
 
 const UserDetailsView: React.FC<UserDetailsViewProps> = ({ userId, onBack }) => {
   const [transactionPage, setTransactionPage] = useState(1)
-  const [transactionFilterStatus, setTransactionFilterStatus] = useState("") // e.g., "success", "failed", "pending"
-  const transactionLimit = 10 // Can be dynamic
+  const [transactionFilterStatus, setTransactionFilterStatus] = useState("") 
+  const transactionLimit = 10 
 
   const {
     data: userDetailsData,
@@ -271,13 +269,13 @@ const getStatusStyle = (status: string) => {
         }
       case "pending":
         return { 
-          backgroundColor: "#FDCA8647", // example secondary bg
-          color: "#FF9100"           // example secondary text
+          backgroundColor: "#FDCA8647", 
+          color: "#FF9100"           
         }
       case "failed":
         return { 
-          backgroundColor: "#FEF1F2", // example destructive bg
-          color: "#E02D3C"            // example destructive text
+          backgroundColor: "#FEF1F2", 
+          color: "#E02D3C"            
         }
       default:
         return { 
@@ -371,11 +369,11 @@ const getStatusStyle = (status: string) => {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-gray-100 rounded-full px-3 py-1 text-sm font-medium">
-                      {userProfile.fullname ? userProfile.fullname.substring(0, 3).toUpperCase() : "N/A"}
+                      {user.firstName? user.firstName.substring(0, 3).toUpperCase() : "N/A"}
                     </div>
                     <div>
                       <div className="font-semibold">
-                        {userProfile.fullname || `${user.firstName} ${user.lastName}`}
+                        {user.lastName || `${user.lastName} ${user.lastName}`}
                       </div>
                       <div className="text-sm text-muted-foreground">{"ID: " + user.id}</div>
                     </div>
@@ -397,12 +395,12 @@ const getStatusStyle = (status: string) => {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Phone Number</div>
-                  <div>{userProfile.user_id ? userProfile.user_id : "N/A"}</div>{" "}
+                  <div>{userProfile.id ? userProfile.id : "N/A"}</div>{" "}
                   {/* Assuming user_id might be phone or similar, otherwise remove */}
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Gender</div>
-                  <div>{userProfile.gender || "N/A"}</div>
+                  <div>{ userProfile.gender|| "N/A"}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Country</div>

@@ -53,7 +53,7 @@ const PartnerSimTable: React.FC<PartnerSimTableProps> = ({ refreshTrigger = 0 })
 
   useEffect(() => {
     fetchAssignedSims()
-  }, [refreshTrigger]) // Refetch when refreshTrigger changes
+  }, [refreshTrigger]) 
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

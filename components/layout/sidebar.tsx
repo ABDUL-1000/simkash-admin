@@ -35,7 +35,7 @@ interface SidebarProps {
   email?: string
 }
 
-export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmail.com" }: SidebarProps) {
+export default function Sidebar() {
   const pathname = usePathname()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   
@@ -44,7 +44,7 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
     cordinator: false,
     partner: false,
     deviceSim: false,
-    // Add more dropdown states here as needed
+    
   })
 
   const toggleDropdown = (dropdownName: keyof typeof dropdownStates) => {
@@ -93,12 +93,12 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       },
       {
         name: "Cordinators",
-        path: "/dashboard/device-sim-cordinator",
+        path: "/dashboard/cordinator",
         icon: <CreditCard className="h-5 w-5" />,
         subItems: [
-          { name: "Cordinator List", path: "/dashboard/device-sim-cordinator/cordinator-list" },
-          { name: "Applications", path: "/dashboard/device-sim-cordinator/cordinator-applications" },
-          { name: "Analytics", path: "/dashboard/device-sim-cordinator/cordinator-analytics" },
+          { name: "Cordinator List", path: "/dashboard/cordinator/cordinator-list" },
+          { name: "Applications", path: "/dashboard/cordinator/cordinator-applications" },
+          { name: "Analytics", path: "/dashboard/cordinator/cordinator-analytics" },
         ],
         showForAgent: true,
         showForUser: true,
@@ -106,16 +106,23 @@ export default function Sidebar({ username = "Yusuf", email = "yusufababa50@gmai
       },
       {
         name: "Partners",
-        path: "/dashboard/device-sim-partner",
+        path: "/dashboard/partner",
         icon: <CreditCard className="h-5 w-5" />,
         subItems: [
-          { name: "Partner List", path: "/dashboard/device-sim-partner/partner-list" },
-          { name: "Applications", path: "/dashboard/device-sim-partner/partner-applications" },
-          { name: "Analytics", path: "/dashboard/device-sim-partner/partner-analytics" },
+          { name: "Partner List", path: "/dashboard/partner/partner-list" },
+          { name: "Applications", path: "/dashboard/partner/partner-applications" },
+          { name: "Analytics", path: "/dashboard/partner/partner-analytics" },
         ],
         showForAgent: true,
         showForUser: true,
         dropdownKey: "partner"
+      },
+      {
+        name: "Device SIM",
+        path: "/dashboard/device-sim",
+        icon: <Wallet className="h-5 w-5" />,
+        showForAgent: true,
+        showForUser: true,
       },
       {
         name: "My Wallet",

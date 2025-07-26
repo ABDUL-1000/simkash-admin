@@ -111,7 +111,7 @@ const verifyAccount = async () => {
 };
 const handleAccountBlur = async () => {
   await trigger("account");
-  if (watch("account")?.length === 10) {  // Changed from 11 to 10
+  if (watch("account")?.length === 10) {  
     await verifyAccount();
   }
 };

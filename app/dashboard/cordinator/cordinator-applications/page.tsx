@@ -9,7 +9,8 @@ import { useState } from "react"
 import PartnerSimTable from "@/components/partner-simTable"
 import PartnerSimRegistrationModal from "@/components/modals/partner-sim-reg-modal"
 import PartnerOverViewSimTable from "@/components/partner-List-table"
-import PartnerApplicationTable from "@/components/PartnerApplicationTable"
+import PartnerApplicationTable from "@/components/pendingPartnerTable"
+import CordinatorApplicationsPage from "@/components/pendngCordinatorTable"
 
 
 const stats = [
@@ -83,7 +84,7 @@ export default function SimPage() {
       <div className="w-full p-4 bg-[#fff] font-sora">
         {/* PageHeader with the modal trigger */}
         <PageHeader
-          title="View submitted partner applications and verify their details before approving."
+          title="View submitted cordinator applications and verify their details before approving."
           subtitle=""
          
         
@@ -98,13 +99,8 @@ export default function SimPage() {
 
         <div className="@container/main flex flex-1 flex-col gap-2">
           <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+            <CordinatorApplicationsPage />
           
-            <PartnerApplicationTable />
-            <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {mobileTable.map((mobile, i) => (
-                <SimTableCard key={i} {...mobile} />
-              ))}
-            </div>
           </div>
         </div>
       </div>

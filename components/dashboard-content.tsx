@@ -7,6 +7,7 @@ import { BackerChart } from "./BackarCharts"
 
 import { Skeleton } from "@/components/ui/skeleton"
 import { useDashboardData } from "@/hooks/use-dashboard-overview"
+import { AuthAPI } from "@/lib/API/api"
 
 export default function DashboardContent() {
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -54,11 +55,11 @@ export default function DashboardContent() {
   }
 
   if (isError) {
-    return (
-      <div className="flex flex-1 flex-col p-4 font-sora items-center justify-center text-red-500">
-        <p>Error loading dashboard data: {error?.message} please refresh..</p>
-      </div>
-    )
+    AuthAPI.logout();
+
+    return;
+      
+    
   }
 
 

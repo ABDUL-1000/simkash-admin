@@ -18,29 +18,31 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import { usePartnerDetails, usePartners, usePartnerTransactions, UserDetailsResponseBody } from "@/hooks/use-partnerList-table"
+import { useCoordinatorDetails, useCoordinators, useCoordinatorTransactions, UserDetailsResponseBody } from "@/hooks/use-cordinatorList-Table"
 
 
-// Define the User type to match UserDetailsResponseBody for the table display
-interface User extends UserDetailsResponseBody {}
 
-const CordinatorListTable= () => {
+// Define the Coordinator type to match UserDetailsResponseBody for the table display
+interface Coordinator extends UserDetailsResponseBody {}
+
+const StateCoordinatorTable = () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all") // Default to "all" for API
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [selectedUsers, setSelectedUsers] = useState<Set<number>>(new Set())
+  const [selectedCoordinator, setSelectedCoordinator] = useState<Coordinator | null>(null)
+  const [selectedCoordinators, setSelectedCoordinators] = useState<Set<number>>(new Set())
 
   const [currentPage, setCurrentPage] = useState(1)
   const limit = 10 // Number of items per page
 
-  const { data, isLoading, isError, error } = usePartners({
+  const { data, isLoading, isError, error } = useCoordinators({
+    // Using renamed hook
     page: currentPage,
     limit: limit,
     searchTerm: searchTerm,
     status: statusFilter === "all" ? "" : statusFilter, // Send empty string for "all"
   })
 
-  const users = data?.agents || []
+  const coordinators = data?.agents || []
   const totalPages = data?.pagination?.totalPages || 1
 
   const getStatusVariant = (status: string) => {
@@ -58,33 +60,34 @@ const CordinatorListTable= () => {
     }
   }
 
-  const handleRowClick = (user: User) => {
-    setSelectedUser(user)
+  const handleRowClick = (coordinator: Coordinator) => {
+    setSelectedCoordinator(coordinator)
   }
 
   const handleBackClick = () => {
-    setSelectedUser(null)
+    setSelectedCoordinator(null)
   }
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUsers(new Set(users.map((user) => user.user_id)))
+      setSelectedCoordinators(new Set(coordinators.map((coordinator) => coordinator.user_id)))
     } else {
-      setSelectedUsers(new Set())
+      setSelectedCoordinators(new Set())
     }
   }
 
-  const handleSelectUser = (userId: number, checked: boolean) => {
-    const newSelected = new Set(selectedUsers)
+  const handleSelectCoordinator = (coordinatorId: number, checked: boolean) => {
+    const newSelected = new Set(selectedCoordinators)
     if (checked) {
-      newSelected.add(userId)
+      newSelected.add(coordinatorId)
     } else {
-      newSelected.delete(userId)
+      newSelected.delete(coordinatorId)
     }
-    setSelectedUsers(newSelected)
+    setSelectedCoordinators(newSelected)
   }
 
-  const isAllSelected = users.length > 0 && users.every((user) => selectedUsers.has(user.user_id))
+  const isAllSelected =
+    coordinators.length > 0 && coordinators.every((coordinator) => selectedCoordinators.has(coordinator.user_id))
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -92,12 +95,12 @@ const CordinatorListTable= () => {
     }
   }
 
-  if (selectedUser) {
-    return <PartnerDetailsView user={selectedUser} onBack={handleBackClick} />
+  if (selectedCoordinator) {
+    return <StateCoordinatorDetailsView coordinator={selectedCoordinator} onBack={handleBackClick} />
   }
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading users...</div>
+    return <div className="flex justify-center items-center h-64">Loading state coordinators...</div>
   }
 
   if (isError) {
@@ -110,7 +113,7 @@ const CordinatorListTable= () => {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
           <Input
-            placeholder="Search users..."
+            placeholder="Search coordinators..."
             className="w-[200px] pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -132,9 +135,13 @@ const CordinatorListTable= () => {
         <TableHeader>
           <TableRow>
             <TableHead className="w-12">
-              <Checkbox checked={isAllSelected} onCheckedChange={handleSelectAll} aria-label="Select all users" />
+              <Checkbox
+                checked={isAllSelected}
+                onCheckedChange={handleSelectAll}
+                aria-label="Select all coordinators"
+              />
             </TableHead>
-            <TableHead className="w-[200px]">User</TableHead>
+            <TableHead className="w-[200px]">Coordinator</TableHead>
             <TableHead>Region</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead>Date Joined</TableHead>
@@ -142,33 +149,33 @@ const CordinatorListTable= () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {users.length > 0 ? (
-            users.map((user) => (
+          {coordinators.length > 0 ? (
+            coordinators.map((coordinator) => (
               <TableRow
-                key={user.id}
+                key={coordinator.user_id}
                 className="cursor-pointer hover:bg-gray-50"
-                onClick={() => handleRowClick(user)}
+                onClick={() => handleRowClick(coordinator)}
               >
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Checkbox
-                    checked={selectedUsers.has(user.id)}
-                    onCheckedChange={(checked) => handleSelectUser(user.id, checked as boolean)}
-                    aria-label={`Select ${user.fullname}`}
+                    checked={selectedCoordinators.has(coordinator.user_id)}
+                    onCheckedChange={(checked) => handleSelectCoordinator(coordinator.user_id, checked as boolean)}
+                    aria-label={`Select ${coordinator.fullname}`}
                   />
                 </TableCell>
-                <TableCell className="font-medium">{user.fullname}</TableCell>
-                <TableCell>{user.state}</TableCell>
-                <TableCell>{user.phone}</TableCell>
-                <TableCell>{new Date(user.createdAt).toLocaleDateString()}</TableCell>
+                <TableCell className="font-medium">{coordinator.fullname}</TableCell>
+                <TableCell>{coordinator.state}</TableCell>
+                <TableCell>{coordinator.phone}</TableCell>
+                <TableCell>{new Date(coordinator.createdAt).toLocaleDateString()}</TableCell>
                 <TableCell>
-                  <Badge variant={getStatusVariant(user.status)}>{user.status}</Badge>
+                  <Badge variant={getStatusVariant(coordinator.status)}>{coordinator.status}</Badge>
                 </TableCell>
               </TableRow>
             ))
           ) : (
             <TableRow>
               <TableCell colSpan={6} className="h-24 text-center">
-                No users found
+                No state coordinators found
               </TableCell>
             </TableRow>
           )}
@@ -209,37 +216,38 @@ const CordinatorListTable= () => {
   )
 }
 
-interface PartnerDetailsViewProps {
-  user: UserDetailsResponseBody
+interface StateCoordinatorDetailsViewProps {
+  coordinator: UserDetailsResponseBody
   onBack: () => void
 }
 
-const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack }) => {
+const StateCoordinatorDetailsView: React.FC<StateCoordinatorDetailsViewProps> = ({ coordinator, onBack }) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentTransactionPage, setCurrentTransactionPage] = useState(1)
   const transactionLimit = 10
 
   const {
-    data: partnerDetailsData,
+    data: coordinatorDetailsData,
     isLoading: isLoadingDetails,
     isError: isErrorDetails,
     error: errorDetails,
-  } = usePartnerDetails(user.id)
+  } = useCoordinatorDetails(coordinator.user_id) // Using renamed hook
 
   const {
-    data: partnerTransactionsData,
+    data: coordinatorTransactionsData,
     isLoading: isLoadingTransactions,
     isError: isErrorTransactions,
     error: errorTransactions,
-  } = usePartnerTransactions({
-    partnerId: user.id,
+  } = useCoordinatorTransactions({
+    // Using renamed hook
+    coordinatorId: coordinator.user_id,
     page: currentTransactionPage,
     limit: transactionLimit,
     status: "", // Assuming no status filter for transactions for now
   })
 
-  const transactions = partnerTransactionsData?.transactions || []
-  const totalTransactionPages = partnerTransactionsData?.pagination?.totalPages || 1
+  const transactions = coordinatorTransactionsData?.transactions || []
+  const totalTransactionPages = coordinatorTransactionsData?.pagination?.totalPages || 1
 
   const getTransactionStatusBadge = (status: string) => {
     switch (status) {
@@ -261,22 +269,22 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
   }
 
   if (isLoadingDetails) {
-    return <div className="flex justify-center items-center h-64">Loading partner details...</div>
+    return <div className="flex justify-center items-center h-64">Loading coordinator details...</div>
   }
 
   if (isErrorDetails) {
     return (
       <div className="flex justify-center items-center h-64 text-red-500">
-        Error loading partner details: {errorDetails?.message}
+        Error loading coordinator details: {errorDetails?.message}
       </div>
     )
   }
 
-  const partner = partnerDetailsData?.user
-  const partnerProfile = partnerDetailsData?.userProfile
+  const coordinatorData = coordinatorDetailsData?.user
+  const coordinatorProfile = coordinatorDetailsData?.userProfile
 
-  if (!partner) {
-    return <div className="flex justify-center items-center h-64 text-red-500">Partner data not found.</div>
+  if (!coordinatorData) {
+    return <div className="flex justify-center items-center h-64 text-red-500">Coordinator data not found.</div>
   }
 
   return (
@@ -285,7 +293,7 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" onClick={onBack} className="text-blue-600 hover:text-blue-800">
           <ArrowLeft className="h-4 w-4 mr-1" />
-          User Details
+          State Coordinator Details
         </Button>
       </div>
 
@@ -293,45 +301,45 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
       <div className="grid grid-cols-5 gap-6">
         {/* Left Column - 40% (2/5) */}
         <div className="col-span-2 space-y-6">
-          {/* User Details Card */}
+          {/* Coordinator Details Card */}
           <Card>
             <CardContent className="p-6">
               <div className="flex items-start justify-between mb-6">
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-gray-100 rounded-full px-3 py-1 text-sm font-medium">
-                      {partner.fullname.slice(0, 3).toUpperCase()}
+                      {coordinatorData.fullname.slice(0, 3).toUpperCase()}
                     </div>
                     <div>
-                      <div className="font-semibold">{partner.fullname}</div>
-                      <div className="text-sm text-muted-foreground">{partnerProfile?.simNumber || "N/A"}</div>
+                      <div className="font-semibold">{coordinatorData.fullname}</div>
+                      <div className="text-sm text-muted-foreground">{coordinatorProfile?.simNumber || "N/A"}</div>
                     </div>
                   </div>
                 </div>
                 <Badge variant="default" className="bg-green-100 text-green-800">
-                  {partner.status}
+                  {coordinatorData.status}
                 </Badge>
               </div>
               <div className="space-y-4">
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Email</div>
-                  <div>{partner.email}</div>
+                  <div>{coordinatorData.email}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Phone Number</div>
-                  <div>{partner.phone}</div>
+                  <div>{coordinatorData.phone}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Gender</div>
-                  <div>{partner.gender}</div>
+                  <div>{coordinatorData.gender}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Country</div>
-                  <div>{partner.country}</div>
+                  <div>{coordinatorData.country}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Date Joined</div>
-                  <div>{new Date(partner.createdAt).toLocaleDateString()}</div>
+                  <div>{new Date(coordinatorData.createdAt).toLocaleDateString()}</div>
                 </div>
               </div>
             </CardContent>
@@ -350,11 +358,11 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
               <div className="space-y-4 mb-6">
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">NIN</div>
-                  <div>{partnerProfile?.nin || "N/A"}</div>
+                  <div>{coordinatorProfile?.nin || "N/A"}</div>
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">BVN</div>
-                  <div>{partnerProfile?.bvn || "N/A"}</div>
+                  <div>{coordinatorProfile?.bvn || "N/A"}</div>
                 </div>
               </div>
               <div className="space-y-3 mb-6">
@@ -401,7 +409,7 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
               <CardContent className="p-4 text-center">
                 <div className="text-sm text-muted-foreground mb-1">Total Transactions</div>
                 <div className="text-2xl font-bold">
-                  ₦{partnerDetailsData?.totalTransactions?.toLocaleString() || "0"}
+                  ₦{coordinatorDetailsData?.totalTransactions?.toLocaleString() || "0"}
                 </div>
               </CardContent>
             </Card>
@@ -409,14 +417,14 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
               <CardContent className="p-4 text-center">
                 <div className="text-sm text-muted-foreground mb-1">Total Investment</div>
                 <div className="text-2xl font-bold">
-                  ₦{partnerDetailsData?.totalInvestment?.toLocaleString() || "0"}
+                  ₦{coordinatorDetailsData?.totalInvestment?.toLocaleString() || "0"}
                 </div>
               </CardContent>
             </Card>
             <Card>
               <CardContent className="p-4 text-center">
                 <div className="text-sm text-muted-foreground mb-1">Pendings</div>
-                <div className="text-2xl font-bold">{partnerDetailsData?.totalPendingTransactions || "0"}</div>
+                <div className="text-2xl font-bold">{coordinatorDetailsData?.totalPendingTransactions || "0"}</div>
               </CardContent>
             </Card>
           </div>
@@ -515,34 +523,33 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
           </Card>
         </div>
       </div>
-      {/* Partnership Summary Section - Removed as per API response structure */}
+      {/* SIMs Summary Section */}
       <div className="space-y-6">
-        <h2 className="text-xl font-semibold">Partnership Summary</h2>
-        {/* Partnership Stats */}
+        <h2 className="text-xl font-semibold">SIMs Summary</h2>
+        {/* SIMs Stats */}
         <div className="grid grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">Total SIMs Assigned</div>
-              <div className="text-2xl font-bold">{partnerDetailsData?.totalSimsAssigned || "0"}</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.totalSimsAssigned || "0"}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">SIMs Distributed</div>
-              <div className="text-2xl font-bold">{partnerDetailsData?.simsDistributed || "0"}</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.simsDistributed || "0"}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">Current SIMs</div>
-              <div className="text-2xl font-bold">{partnerDetailsData?.currentSims || "0"}</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.currentSims || "0"}</div>
             </CardContent>
           </Card>
         </div>
-        {/* Partnership Table - Removed as per API response structure */}
       </div>
     </div>
   )
 }
 
-export default CordinatorListTable
+export default StateCoordinatorTable

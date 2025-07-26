@@ -9,6 +9,7 @@ export interface Pagination {
   limit: number
   total: number
   totalPages: number
+  currentPage: number
 }
 
 export interface User {
@@ -46,6 +47,18 @@ export interface UserDetail {
   createdAt: string
   updatedAt: string
   isVerified: boolean
+}
+export interface PartnerUserDetail {
+  id: number
+  status: string
+  firstName: string
+  lastName: string
+  email: string
+  password?: string
+  createdAt: string
+  updatedAt: string
+  isVerified: boolean
+  user_id: number
 }
 
 export interface UserProfile {
