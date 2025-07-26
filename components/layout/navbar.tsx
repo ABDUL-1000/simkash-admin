@@ -41,7 +41,7 @@ export function Navbar({ username, email }: NavbarProps) {
         {/* Desktop Greeting */}
         <div className="hidden lg:block">
           <h1 className="text-xl font-medium">
-            {greeting}, {userProfile?.fullname}
+            {greeting}, {userProfile?.fullname || username}
           </h1>
         </div>
 
