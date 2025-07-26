@@ -119,8 +119,8 @@ const AddedSimsTable: React.FC<PartnerSimTableProps> = ({ refreshTrigger = 0 }) 
                 <TableRow>
                   <TableHead>Batch ID</TableHead>
                   <TableHead>Status</TableHead>
-                  <TableHead>Network</TableHead>
                   <TableHead>Date Added</TableHead>
+                  <TableHead> Network</TableHead>
                   <TableHead>Quantity</TableHead>
                   <TableHead>Remaining</TableHead>
                  
