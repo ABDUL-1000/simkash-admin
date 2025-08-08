@@ -29,7 +29,7 @@ export const useUsers = ({ page = 1, limit = 10, searchTerm = "", status = "" }:
     queryKey: userManagementKeys.users(page, limit, searchTerm, status),
     queryFn: async (): Promise<AllUsersResponse> => {
       const { data } = await api.get<ApiResponse<AllUsersResponse>>(
-        `/api/v1/admin/user`,
+        `/api/v1/admin/user?page=${page}&limit=${limit}`,
       )
       if (data.responseSuccessful && data.responseBody) {
         return data.responseBody

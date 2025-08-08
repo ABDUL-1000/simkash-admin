@@ -27,7 +27,7 @@ export default function RootLayout({
     <html lang="en" suppressContentEditableWarning className={`${sora.variable}`}>
     
 
-      <body className="font-sora">
+      <body >
         <Toaster position="top-center" />
         <ReactQueryProvider>{children}</ReactQueryProvider>
       </body>

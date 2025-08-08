@@ -19,11 +19,11 @@ export default function CordinatorApplicationsPage() {
 
   const { data, isLoading, isError, error } = useCordinators({
     page,
-    limit: 10, // Assuming 10 items per page as default
+    limit: 10, 
     searchTerm: currentSearchTerm,
-    status: "pending", // Fetching only pending partners as per request
+    status: "pending", 
   })
-  console.log(data, "partner data")
+  console.log(data, "cordinator data")
 
   const handleRowClick = (partnerId: number) => {
     setSelectedPartnerId(partnerId)
@@ -57,7 +57,7 @@ export default function CordinatorApplicationsPage() {
             </div>
           ) : (
             <CordinatorApplicationsTable
-              partners={data?.agents || []}
+              partners={data?.states || []}
               onRowClick={handleRowClick}
               currentPage={data?.pagination.currentPage || 1}
               totalPages={data?.pagination.totalPages || 1}
@@ -70,7 +70,7 @@ export default function CordinatorApplicationsPage() {
         </CardContent>
       </Card>
       <PartnerDetailsModal partnerId={selectedPartnerId} isOpen={isModalOpen} onClose={handleCloseModal} />
-      <Toaster />
+  
     </main>
   )
 }

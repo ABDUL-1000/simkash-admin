@@ -124,13 +124,7 @@ export default function Sidebar() {
         showForAgent: true,
         showForUser: true,
       },
-      {
-        name: "My Wallet",
-        path: "/dashboard/wallet",
-        icon: <Wallet className="h-5 w-5" />,
-        showForAgent: true,
-        showForUser: true,
-      },
+  
       {
         name: "Device SIM",
         path: "/dashboard/device-sim",

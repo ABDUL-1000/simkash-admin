@@ -19,8 +19,7 @@ export const useUserManagement = () => {
   const userManagementQuery = useQuery<userManagement, Error>({
     queryKey: userAccountKeys.details(),
     queryFn: async (): Promise<userManagement> => {
-      // IMPORTANT CHANGE: The ApiResponse now expects a single UserAccount object
-      // directly in its responseBody, not an object with an 'accountDetails' property.
+     
       const { data } = await api.get<ApiResponse<userManagement>>("/api/v1/admin/user/overview")
 
     

@@ -9,7 +9,8 @@ import { useState } from "react"
 import PartnerSimTable from "@/components/partner-simTable"
 import PartnerSimRegistrationModal from "@/components/modals/partner-sim-reg-modal"
 import PartnerOverViewSimTable from "@/components/partner-List-table"
-import CordinatorListTable from "@/components/partner-List-table"
+import CordinatorListTable from "@/components/cordinatorListTable"
+
 
 
 const stats = [
@@ -97,7 +98,7 @@ export default function SimPage() {
               <p className="px-4 py-2 text-[#303237]">Overview</p>
              
             </div>
-            <CordinatorListTable />
+            <CordinatorListTable/>
             <div className="grid bg-[#FFFFFF] p-4 mt-2 lg:hidden gap-4 md:grid-cols-2 lg:grid-cols-3">
               {mobileTable.map((mobile, i) => (
                 <SimTableCard key={i} {...mobile} />

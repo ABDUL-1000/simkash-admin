@@ -17,9 +17,9 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={sora.className}>
     
-      <body className={sora.className}>
+      <body >
        
 
         <div>

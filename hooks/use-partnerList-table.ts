@@ -43,6 +43,7 @@ export interface PartnerProfile {
 export interface AllPartnersResponse {
   agents: UserDetailsResponseBody[]
   pagination: Pagination
+  states: UserDetailsResponseBody[]
 }
 
 export interface PartnerDetailsResponseBody {

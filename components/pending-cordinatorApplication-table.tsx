@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/pagination"
 
 import { Search, Filter, MoreHorizontal } from "lucide-react"
-import { UserDetailsResponseBody } from "@/hooks/use-partnerList-table"
+import { UserDetailsResponseBody } from "@/hooks/use-cordinatorList-Table"
+
 
 interface PartnerApplicationsTableProps {
   partners: UserDetailsResponseBody[]
@@ -36,6 +37,7 @@ export default function CordinatorApplicationsTable({
   onSearchChange,
   onApplyFilter,
 }: PartnerApplicationsTableProps) {
+  console.log(partners, "cordinatorssss")
   return (
     <div className="bg-white rounded-lg shadow-sm p-4 ">
       <div className="flex items-center justify-between mb-6">

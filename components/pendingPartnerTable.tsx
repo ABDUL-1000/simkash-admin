@@ -22,7 +22,7 @@ export default function PartnerApplicationsPage() {
     searchTerm: currentSearchTerm,
     status: "pending", // Fetching only pending partners as per request
   })
-  console.log(data, "partner data")
+  console.log(data, "pending partner data")
 
   const handleRowClick = (partnerId: number) => {
     setSelectedPartnerId(partnerId)

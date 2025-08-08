@@ -18,14 +18,14 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import { usePartnerDetails, usePartners, usePartnerTransactions, UserDetailsResponseBody } from "@/hooks/use-partnerList-table"
+import { usePartnerDetails, usePartners, usePartnerTransactions, UserDetailsResponseBody } from "@/hooks/use-cordinatorList-Table"
 import Loader from "./Loader"
 
 
 // Define the User type to match UserDetailsResponseBody for the table display
 interface User extends UserDetailsResponseBody {}
 
-const PartnerListTable= () => {
+const CordinatorListTable= () => {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all") // Default to "all" for API
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -39,12 +39,11 @@ const PartnerListTable= () => {
     limit: limit,
     searchTerm: searchTerm,
     status: statusFilter === "all" ? "" : statusFilter, // Send empty string for "all"
-  
   })
-
-  const users = data?.agents || []
+console.log(data, 'coordinator data')
+  const users = data?.states || []
+  console.log(users, 'coordinator users')
   const totalPages = data?.pagination?.totalPages || 1
-  console.log(users, 'agentss')
 
   const getStatusVariant = (status: string) => {
     switch (status) {
@@ -548,4 +547,4 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
   )
 }
 
-export default PartnerListTable
+export default CordinatorListTable

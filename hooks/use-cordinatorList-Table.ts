@@ -39,7 +39,7 @@ export interface PartnerProfile {
 }
 
 export interface AllPartnersResponse {
-  agents: UserDetailsResponseBody[]
+  states: UserDetailsResponseBody[]
   pagination: Pagination
 }
 
@@ -96,7 +96,7 @@ export const usePartners = ({ page = 1, limit = 10, searchTerm = "", status = ""
     queryKey: partnerManagementKeys.partners(page, limit, searchTerm, status),
     queryFn: async (): Promise<AllPartnersResponse> => {
       const { data } = await api.get<ApiResponse<AllPartnersResponse>>(
-        `/api/v1/admin/partner?page=${page}&limit=${limit}&searchTerm=${searchTerm}&status=${status}`,
+        `/api/v1/admin/state?page=${page}&limit=${limit}&searchTerm=${searchTerm}&status=${status}`,
       )
       if (data.responseSuccessful && data.responseBody) {
         return data.responseBody
@@ -115,7 +115,7 @@ export const usePartnerDetails = (partnerId: number | null) => {
     queryFn: async (): Promise<PartnerDetailsResponseBody> => {
       if (!partnerId) throw new Error("Partner ID is required to fetch details.")
       const { data } = await api.get<ApiResponse<PartnerDetailsResponseBody>>(
-        `api/v1/admin/partner/details?userId=${partnerId}`,
+        `api/v1/admin/state/details?userId=${partnerId}`,
       )
       if (data.responseSuccessful && data.responseBody) {
         // Add mock values for totalSimsAssigned, simsDistributed, currentSims

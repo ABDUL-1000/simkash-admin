@@ -39,6 +39,7 @@ export interface UserDetailsResponseBody {
 export interface AllPartnersResponse {
   agents: UserDetailsResponseBody[]
   pagination: Pagination
+  states: UserDetailsResponseBody[]
 }
 
 // Updated PartnerDetailsResponseBody to match the new 'agent' structure

@@ -15,8 +15,7 @@ interface PartnerDetailsModalProps {
 export default function PartnerDetailsModal({ partnerId, isOpen, onClose }: PartnerDetailsModalProps) {
   const { data: partnerDetails, isLoading, isError, error } = usePartnerDetails(partnerId)
   const approveMutation = useApprovePartner()
-  // Removed denyMutation as per your request
-
+  
   const handleApprove = async () => {
     if (partnerId) {
       try {
