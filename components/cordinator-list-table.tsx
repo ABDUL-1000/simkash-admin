@@ -19,6 +19,7 @@ import {
   ChevronRight,
 } from "lucide-react"
 import { useCoordinatorDetails, useCoordinators, useCoordinatorTransactions, UserDetailsResponseBody } from "@/hooks/use-cordinatorList-Table"
+import Loader from "./Loader"
 
 
 
@@ -39,10 +40,10 @@ const StateCoordinatorTable = () => {
     page: currentPage,
     limit: limit,
     searchTerm: searchTerm,
-    status: statusFilter === "all" ? "" : statusFilter, // Send empty string for "all"
+    status: statusFilter === "all" ? "" : statusFilter, 
   })
 
-  const coordinators = data?.agents || []
+  const coordinators = data?.states|| []
   const totalPages = data?.pagination?.totalPages || 1
 
   const getStatusVariant = (status: string) => {
@@ -100,7 +101,7 @@ const StateCoordinatorTable = () => {
   }
 
   if (isLoading) {
-    return <div className="flex justify-center items-center h-64">Loading state coordinators...</div>
+    return <Loader/>
   }
 
   if (isError) {
@@ -231,7 +232,8 @@ const StateCoordinatorDetailsView: React.FC<StateCoordinatorDetailsViewProps> = 
     isLoading: isLoadingDetails,
     isError: isErrorDetails,
     error: errorDetails,
-  } = useCoordinatorDetails(coordinator.user_id) // Using renamed hook
+  } = useCoordinatorDetails(coordinator.user_id) 
+  console.log("Coordinator details dataaaa:", coordinatorDetailsData?.totalCommission)
 
   const {
     data: coordinatorTransactionsData,
@@ -239,11 +241,11 @@ const StateCoordinatorDetailsView: React.FC<StateCoordinatorDetailsViewProps> = 
     isError: isErrorTransactions,
     error: errorTransactions,
   } = useCoordinatorTransactions({
-    // Using renamed hook
+  
     coordinatorId: coordinator.user_id,
     page: currentTransactionPage,
     limit: transactionLimit,
-    status: "", // Assuming no status filter for transactions for now
+    status: "", 
   })
 
   const transactions = coordinatorTransactionsData?.transactions || []
@@ -269,7 +271,7 @@ const StateCoordinatorDetailsView: React.FC<StateCoordinatorDetailsViewProps> = 
   }
 
   if (isLoadingDetails) {
-    return <div className="flex justify-center items-center h-64">Loading coordinator details...</div>
+  <Loader/>
   }
 
   if (isErrorDetails) {
@@ -530,20 +532,26 @@ const StateCoordinatorDetailsView: React.FC<StateCoordinatorDetailsViewProps> = 
         <div className="grid grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
+              <div className="text-sm text-muted-foreground mb-1">Total Commissions</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.totalCommission}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="p-4 text-center">
               <div className="text-sm text-muted-foreground mb-1">Total SIMs Assigned</div>
-              <div className="text-2xl font-bold">{coordinatorDetailsData?.totalSimsAssigned || "0"}</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.totalSimAssigned}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-sm text-muted-foreground mb-1">SIMs Distributed</div>
-              <div className="text-2xl font-bold">{coordinatorDetailsData?.simsDistributed || "0"}</div>
+              <div className="text-sm text-muted-foreground mb-1">Total Partner</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.totalPartner}</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-sm text-muted-foreground mb-1">Current SIMs</div>
-              <div className="text-2xl font-bold">{coordinatorDetailsData?.currentSims || "0"}</div>
+              <div className="text-sm text-muted-foreground mb-1">Remaining SIMs</div>
+              <div className="text-2xl font-bold">{coordinatorDetailsData?.remainingSim }</div>
             </CardContent>
           </Card>
         </div>

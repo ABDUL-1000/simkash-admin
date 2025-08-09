@@ -1,11 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import api from "@/lib/API/axiosInstance"
 
-// Define types for the SIM batch addition API
-export interface AddSimBatchPayload {
+// Existing types for SIM batch addition API
+export interface AddBatchPayload {
   batch_name: string
-  network: string
-  quantity: number
 }
 
 export interface AddSimBatchResponse {
@@ -15,20 +13,37 @@ export interface AddSimBatchResponse {
     id: number
     batch_name: string
     quantity: number
-    network: string
+    network: string | null // Updated to allow null
     status: string
     createdAt: string
     updatedAt: string
   }
 }
 
-// New types for fetching SIM batches
+// New types for adding SIMs to an existing batch
+export interface AddSimsPayload {
+  batchId: number
+  network: string
+  sims: string[]
+}
+
+export interface AddSimsResponse {
+  responseSuccessful: boolean
+  responseMessage: string
+  responseBody?: {
+    batchId: number
+    network: string
+    sims: string[]
+  }
+}
+
+// Existing types for fetching SIM batches
 export interface SimBatch {
   id: number
   admin_id: number
   agent_id: number | null
   batch_name: string
-  network: string
+  network: string | null // Updated to allow null
   quantity: number
   number_of_assigned: number
   status: string
@@ -58,13 +73,15 @@ export interface SimBatchesApiResponse {
 export const simManagementKeys = {
   all: ["sim-management"] as const,
   simBatches: (page = 1, limit = 10) => [...simManagementKeys.all, "batches", page, limit] as const,
+  simsInBatch: (batchId: number) => [...simManagementKeys.all, "sims", batchId] as const,
 }
 
-export const useAddSimBatch = () => {
+// Existing hook to add a new SIM batch
+export const useAddBatch = () => {
   const queryClient = useQueryClient()
-  return useMutation<AddSimBatchResponse, Error, AddSimBatchPayload>({
-    mutationFn: async (payload: AddSimBatchPayload) => {
-      const { data } = await api.post<AddSimBatchResponse>("/api/v1/admin/sim/add", payload)
+  return useMutation<AddSimBatchResponse, Error, AddBatchPayload>({
+    mutationFn: async (payload: AddBatchPayload) => {
+      const { data } = await api.post<AddSimBatchResponse>("/api/v1/admin/sim/add-batch", payload)
       if (data.responseSuccessful) {
         return data
       } else {
@@ -72,13 +89,31 @@ export const useAddSimBatch = () => {
       }
     },
     onSuccess: () => {
-      // Invalidate relevant queries to refetch SIM batches after a successful addition
       queryClient.invalidateQueries({ queryKey: simManagementKeys.simBatches() })
     },
   })
 }
 
-// New hook to fetch SIM batches
+// New hook to add SIMs to an existing batch
+export const useAddSimsToBatch = () => {
+  const queryClient = useQueryClient()
+  return useMutation<AddSimsResponse, Error, AddSimsPayload>({
+    mutationFn: async (payload: AddSimsPayload) => {
+      const { data } = await api.post<AddSimsResponse>("/api/v1/admin/sim/add-sim", payload)
+      if (data.responseSuccessful) {
+        return data
+      } else {
+        throw new Error(data.responseMessage || "Failed to add SIMs to batch.")
+      }
+    },
+    onSuccess: (data, variables) => {
+      queryClient.invalidateQueries({ queryKey: simManagementKeys.simsInBatch(variables.batchId) })
+      queryClient.invalidateQueries({ queryKey: simManagementKeys.simBatches() })
+    },
+  })
+}
+
+// Existing hook to fetch SIM batches with pagination
 interface UseSimBatchesOptions {
   page?: number
   limit?: number

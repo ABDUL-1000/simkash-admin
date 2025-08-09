@@ -138,6 +138,18 @@ export default function Sidebar() {
         dropdownKey: "deviceSim"
       },
       {
+        name: "Simkash Pro",
+        path: "/dashboard/sim-pro-management",
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Overview", path: "/dashboard/sim-pro-management/overview" },
+          { name: "Customization", path: "/dashboard/simProManagement/customization" },
+        ],
+        showForAgent: true,
+        showForUser: true,
+        dropdownKey: "sim-pro-management"
+      },
+      {
         name: "Bill Payments",
         path: "/dashboard/bills",
         icon: <ReceiptText className="h-5 w-5" />,

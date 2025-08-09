@@ -16,10 +16,10 @@ const AddedSimsTable: React.FC<PartnerSimTableProps> = ({ refreshTrigger = 0 }) 
   const { data, isLoading, isError, error, refetch } = useSimBatches() // Use the new hook
   console.log("SIM Batches:", data)
 
-  // Effect to refetch if refreshTrigger changes (e.g., after adding a new SIM batch)
+
   useEffect(() => {
     if (refreshTrigger > 0) {
-      // Only refetch if trigger is explicitly set
+    
       refetch()
     }
   }, [refreshTrigger, refetch])
@@ -38,33 +38,42 @@ const AddedSimsTable: React.FC<PartnerSimTableProps> = ({ refreshTrigger = 0 }) 
     })
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status.toLowerCase()) {
-      case "active":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
-      case "pending":
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>
-      case "inactive":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Inactive</Badge>
-      default:
-        return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">{status}</Badge>
-    }
+const getStatusBadge = (status: string | null) => {
+  if (!status) {
+    return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">Unknown</Badge>
   }
+  
+  switch (status.toLowerCase()) {
+    case "active":
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Active</Badge>
+    case "pending":
+      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Pending</Badge>
+    case "inactive":
+      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Inactive</Badge>
+    default:
+      return <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">{status}</Badge>
+  }
+}
 
-  const getNetworkColor = (network: string) => {
-    switch (network.toLowerCase()) {
-      case "mtn":
-        return "text-yellow-600 font-semibold"
-      case "airtel":
-        return "text-red-600 font-semibold"
-      case "glo":
-        return "text-green-600 font-semibold"
-      case "9mobile":
-        return "text-green-800 font-semibold"
-      default:
-        return "text-gray-600 font-semibold"
-    }
+
+const getNetworkColor = (network: string | null) => {
+  if (!network) {
+    return "text-gray-600 font-semibold"
   }
+  
+  switch (network.toLowerCase()) {
+    case "mtn":
+      return "text-yellow-600 font-semibold"
+    case "airtel":
+      return "text-red-600 font-semibold"
+    case "glo":
+      return "text-green-600 font-semibold"
+    case "9mobile":
+      return "text-green-800 font-semibold"
+    default:
+      return "text-gray-600 font-semibold"
+  }
+}
 
   if (isLoading) {
     return (
@@ -120,7 +129,7 @@ const AddedSimsTable: React.FC<PartnerSimTableProps> = ({ refreshTrigger = 0 }) 
                   <TableHead>Batch ID</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Date Added</TableHead>
-                  <TableHead> Network</TableHead>
+               
                   <TableHead>Quantity</TableHead>
                   <TableHead>Remaining</TableHead>
                  
@@ -143,9 +152,7 @@ const AddedSimsTable: React.FC<PartnerSimTableProps> = ({ refreshTrigger = 0 }) 
                         )}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <span className={getNetworkColor(simBatch.network)}>{simBatch.network}</span>
-                    </TableCell>
+                    
                     <TableCell>{simBatch.quantity}</TableCell>
                     <TableCell>{simBatch.quantity-simBatch.number_of_assigned}</TableCell>
                   </TableRow>

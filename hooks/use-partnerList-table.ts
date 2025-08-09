@@ -52,9 +52,10 @@ export interface PartnerDetailsResponseBody {
   totalInvestment: number // Used for totalCommissions as per API response
   user: UserDetailsResponseBody
   userProfile: PartnerProfile
-  totalSimsAssigned: number // Added based on the original mock data and common sense for a partner view
-  simsDistributed: number // Added based on the original mock data
-  currentSims: number // Added based on the original mock data
+  totalCommission: number
+  totalSimAssigned: number
+  totalSimDistributed: number 
+  remainingSim: number 
 }
 
 export interface Transaction {
@@ -124,9 +125,7 @@ export const usePartnerDetails = (partnerId: number | null) => {
         // as they are not in the provided API response for partner details
         return {
           ...data.responseBody,
-          totalSimsAssigned: 500, // Example mock value
-          simsDistributed: 132, // Example mock value
-          currentSims: 300, // Example mock value
+     
         }
       } else {
         throw new Error(data.responseMessage || "Failed to fetch partner details.")

@@ -279,7 +279,7 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
   const partnerProfile = partnerDetailsData?.userProfile
 
   if (!partner) {
-    return <div className="flex justify-center items-center h-64 text-red-500">Partner data not found.</div>
+    return  <Loader/>
   }
 
   return (
@@ -521,27 +521,33 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
       {/* Partnership Summary Section - Removed as per API response structure */}
       <div className="space-y-6">
         <h2 className="text-xl font-semibold">Partnership Summary</h2>
-        {/* Partnership Stats */}
-        <div className="grid grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-sm text-muted-foreground mb-1">Total SIMs Assigned</div>
-              <div className="text-2xl font-bold">{partnerDetailsData?.totalSimsAssigned || "0"}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-sm text-muted-foreground mb-1">SIMs Distributed</div>
-              <div className="text-2xl font-bold">{partnerDetailsData?.simsDistributed || "0"}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-sm text-muted-foreground mb-1">Current SIMs</div>
-              <div className="text-2xl font-bold">{partnerDetailsData?.currentSims || "0"}</div>
-            </CardContent>
-          </Card>
-        </div>
+       <div className="grid grid-cols-4 gap-4">
+             
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-sm text-muted-foreground mb-1">Total Commissions</div>
+                    <div className="text-2xl font-bold">{partnerDetailsData?.totalCommission}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-sm text-muted-foreground mb-1">Total SIMs Assigned</div>
+                    <div className="text-2xl font-bold">{partnerDetailsData?.totalSimAssigned}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-sm text-muted-foreground mb-1"> SIMs Distributed</div>
+                    <div className="text-2xl font-bold">{partnerDetailsData?.totalSimDistributed}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4 text-center">
+                    <div className="text-sm text-muted-foreground mb-1"> Remaining Sims</div>
+                    <div className="text-2xl font-bold">{partnerDetailsData?.remainingSim}</div>
+                  </CardContent>
+                </Card>
+              </div>
         {/* Partnership Table - Removed as per API response structure */}
       </div>
     </div>

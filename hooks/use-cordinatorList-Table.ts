@@ -33,9 +33,9 @@ export interface PartnerProfile {
   profile_picture: string
   createdAt: string
   updatedAt: string
-  simNumber?: string // Added based on original mock, ensure your API provides this if needed
-  nin?: string // Added based on original mock, ensure your API provides this if needed
-  bvn?: string // Added based on original mock, ensure your API provides this if needed
+  simNumber?: string 
+  nin?: string 
+  bvn?: string 
 }
 
 export interface AllPartnersResponse {
@@ -46,12 +46,13 @@ export interface AllPartnersResponse {
 export interface PartnerDetailsResponseBody {
   totalTransactions: number
   totalPendingTransactions: number
-  totalInvestment: number // Used for totalCommissions as per API response
+  totalInvestment: number 
   user: UserDetailsResponseBody
   userProfile: PartnerProfile
-  totalSimsAssigned: number // Added based on the original mock data and common sense for a partner view
-  simsDistributed: number // Added based on the original mock data
-  currentSims: number // Added based on the original mock data
+  totalSimAssigned: number 
+  totalCommission: number
+  totalPartner: number 
+  remainingSim: number 
 }
 
 export interface Transaction {
@@ -74,7 +75,7 @@ export interface PartnerTransactionsResponseBody {
   pagination: Pagination
 }
 
-// --- Partner Management Hooks (unchanged) ---
+
 export const partnerManagementKeys = {
   all: ["partner-management"] as const,
   partners: (page: number, limit: number, searchTerm: string, status: string) =>
@@ -118,13 +119,10 @@ export const usePartnerDetails = (partnerId: number | null) => {
         `api/v1/admin/state/details?userId=${partnerId}`,
       )
       if (data.responseSuccessful && data.responseBody) {
-        // Add mock values for totalSimsAssigned, simsDistributed, currentSims
-        // as they are not in the provided API response for partner details
+        
         return {
           ...data.responseBody,
-          totalSimsAssigned: 500, // Example mock value
-          simsDistributed: 132, // Example mock value
-          currentSims: 300, // Example mock value
+         
         }
       } else {
         throw new Error(data.responseMessage || "Failed to fetch partner details.")
@@ -203,6 +201,8 @@ export const useCoordinators = ({ page = 1, limit = 10, searchTerm = "", status 
   })
 }
 
+
+
 export const useCoordinatorDetails = (coordinatorId: number | null) => {
   return useQuery<PartnerDetailsResponseBody, Error>({
     queryKey: coordinatorManagementKeys.coordinatorDetails(coordinatorId),
@@ -212,13 +212,10 @@ export const useCoordinatorDetails = (coordinatorId: number | null) => {
         `api/v1/admin/state/details?userId=${coordinatorId}`,
       )
       if (data.responseSuccessful && data.responseBody) {
-        // Add mock values for totalSimsAssigned, simsDistributed, currentSims
-        // as they are not in the provided API response for partner details
+        
         return {
-          ...data.responseBody,
-          totalSimsAssigned: 500, // Example mock value
-          simsDistributed: 132, // Example mock value
-          currentSims: 300, // Example mock value
+          ...data.responseBody
+      
         }
       } else {
         throw new Error(data.responseMessage || "Failed to fetch coordinator details.")

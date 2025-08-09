@@ -21,8 +21,23 @@ export interface AddSimBatchResponse {
     updatedAt: string
   }
 }
+export interface SimProTableApiResponse {
+  responseSuccessful: boolean
+  responseMessage: string
+  responseBody?: {
+    users: {
+      id: number
+      fullname: string
+      email: string
+      phone: string
+      subscriptionDate: string
+      status: string
+   
+    }[]
+    pagination: AddedSimBatchPagination
+  }
+}
 
-// Types for fetching ADDED SIM batches (previously useSimBatches)
 export interface AddedSimBatch {
   id: number
   admin_id: number
@@ -47,6 +62,20 @@ export interface AddedSimBatchPagination {
 export interface AddedSimBatchResponseBody {
   simBatch: AddedSimBatch[]
   pagination: AddedSimBatchPagination
+}
+
+export interface SimProTable {
+  users:{
+id: number,
+fullname: string,
+email: string,
+phone: string,
+subscriptionDate: string,
+status: string,
+
+  }[],
+  pagination: AddedSimBatchPagination
+
 }
 
 export interface AddedSimBatchesApiResponse {
@@ -74,7 +103,7 @@ export interface DistributableSimBatch {
 export interface DistributableSimBatchesApiResponse {
   responseSuccessful: boolean
   responseMessage: string
-  responseBody?: DistributableSimBatch[] // The array of batches is inside responseBody
+  responseBody?: DistributableSimBatch[] 
 }
 
 export interface DistributeSimPayload {
@@ -141,7 +170,21 @@ export const useAddedSimBatches = ({ page = 1, limit = 10 }: UseAddedSimBatchesO
     staleTime: 1000 * 60 * 5, // 5 minutes
   })
 }
-
+export const useSimProTable = ({ page = 1, limit = 10 }: UseAddedSimBatchesOptions = {}) => {
+  return useQuery({
+    queryKey: simManagementKeys.addedSimBatches(page, limit),
+    queryFn: async () => {
+      const { data } = await api.get<SimProTableApiResponse>(`/api/v1/admin/sim/pro?page=${page}&limit=${limit}`)
+      if (data.responseSuccessful && data.responseBody) {
+        return data.responseBody
+      } else {
+        throw new Error(data.responseMessage || "Failed to fetch datas.")
+      }
+    },
+    placeholderData: (previousData) => previousData,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })
+}
 // New hook to fetch DISTRIBUTABLE SIM batches
 export const useDistributableSimBatches = () => {
   return useQuery<DistributableSimBatch[], Error>({

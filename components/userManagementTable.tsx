@@ -20,14 +20,14 @@ import {
 } from "lucide-react"
 
 import { format } from "date-fns"
-import type { Transaction } from "@/lib/type" // Import User and UserTransaction from your lib/type.ts
+import type { Transaction } from "@/lib/type" 
 import { useUserDetails, useUsers, useUserTransactions } from "@/hooks/use-userManagement-table"
 
 const UserManagementTable: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
-  const [filterStatus, setFilterStatus] = useState("") // State for status filter
+  const [filterStatus, setFilterStatus] = useState("") 
 
   const {
     data: usersData,
@@ -38,7 +38,7 @@ const UserManagementTable: React.FC = () => {
     refetch,
   } = useUsers({
     page: currentPage,
-    limit: 10, // You can make this dynamic if needed
+    limit: 10, 
     searchTerm,
     status: filterStatus,
   })
@@ -61,11 +61,12 @@ const UserManagementTable: React.FC = () => {
   const handleFilterToggle = () => {
 
     setFilterStatus((prev) => (prev === "active" ? "" : "active"))
-    setCurrentPage(1) // Reset to first page on filter change
+    setCurrentPage(1) 
   }
 
   if (isLoading && !isFetching) {
-    // Only show full loading spinner on initial load
+   
+    
     return (
       <Card>
         <CardHeader>
@@ -139,7 +140,7 @@ const UserManagementTable: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-[100px]">User ID</TableHead>
+                  <TableHead className="w-[100px]">S/N</TableHead>
                   <TableHead>Full Name / Email</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>KYC Status</TableHead>
@@ -147,14 +148,14 @@ const UserManagementTable: React.FC = () => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {users.map((user) => (
+                {users.map((user, index) => (
                   <TableRow
                     key={user.id}
                     className="cursor-pointer hover:bg-gray-50"
                     onClick={() => handleRowClick(user.id)}
                   >
                     <TableCell className="font-medium">
-                      <span className="font-mono text-sm">{user.id}</span>
+                      {(currentPage - 1) * (pagination?.limit || 10) + (index + 1)}
                     </TableCell>
                     <TableCell>
                       <span>{user.username || user.email}</span>
@@ -292,7 +293,7 @@ const getStatusStyle = (status: string) => {
   const handleTransactionFilterToggle = () => {
     // Example: toggle between "success" and ""
     setTransactionFilterStatus((prev) => (prev === "success" ? "" : "success"))
-    setTransactionPage(1) // Reset to first page on filter change
+    setTransactionPage(1) 
   }
 
   if (isUserDetailsLoading && !isUserTransactionsLoading) {
