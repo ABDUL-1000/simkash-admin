@@ -60,9 +60,7 @@ const AddBatchModal: React.FC<DistributeSimModalProps> = ({ isOpen, onClose, onS
     if (!summaryData) return
     try {
       const response = await addSimBatchMutation.mutateAsync(summaryData)
-      toast.success("SIM Batch successfully added!", {
-        description: `Batch: ${summaryData.batch_name}`,
-      })
+
       setCurrentStep("success")
       if (onSuccess) {
         onSuccess(response.responseBody)

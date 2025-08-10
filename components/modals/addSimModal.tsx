@@ -124,9 +124,7 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
     if (!summaryData) return
     try {
       const response = await addSimsMutation.mutateAsync(summaryData)
-      toast.success("SIMs successfully added to batch!", {
-        description: `Added ${summaryData.sims.length} SIMs to ${selectedBatchDetails?.batch_name || "selected batch"}`,
-      })
+  
       setCurrentStep("success")
       if (onSuccess) {
         onSuccess(response.responseBody)
