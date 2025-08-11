@@ -491,8 +491,8 @@ const DataModal: React.FC<DataModalProps> = ({ isOpen, onClose, onSuccess }) => 
                     </div>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Data Plan:</span>
-                    <span className="font-medium">{selectedPlan?.name}</span>
+                    <span className="text-gray-600 text-[0.075rem]">Data Plan:</span>
+                    <span className="text-[0.075rem]">{selectedPlan?.name}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Validity:</span>

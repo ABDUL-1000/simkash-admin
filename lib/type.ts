@@ -40,10 +40,15 @@ export interface AllUsersResponse {
 export interface UserDetail {
   id: number
   status: string
-  firstName: string
-  lastName: string
+  fullname: string
+  phone: string
+  address: string
+  lga: string
+  country: string
+  state: string
   email: string
-  password?: string
+  gender: string
+  reason: string
   createdAt: string
   updatedAt: string
   isVerified: boolean

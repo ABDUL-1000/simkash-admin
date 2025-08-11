@@ -453,15 +453,20 @@ const PartnerDetailsView: React.FC<PartnerDetailsViewProps> = ({ user, onBack })
               ) : transactions.length > 0 ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+                    <div>S/N</div>
                     <div>Type/Date</div>
                     <div>Amount</div>
                     <div>Status</div>
                   </div>
-                  {transactions.map((transaction) => (
+                  {transactions.map((transaction, index) => (
                     <div
                       key={transaction.id}
                       className="grid grid-cols-3 gap-4 items-center py-3 border-b last:border-b-0"
                     >
+                      <div>
+                        <div className="font-medium">{(currentTransactionPage - 1) * transactionLimit + index + 1}</div>
+                      
+                      </div>
                       <div>
                         <div className="font-medium">{transaction.transaction_type}</div>
                         <div className="text-sm text-muted-foreground">

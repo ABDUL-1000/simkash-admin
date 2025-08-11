@@ -22,6 +22,7 @@ import {
 import { format } from "date-fns"
 import type { Transaction } from "@/lib/type" 
 import { useUserDetails, useUsers, useUserTransactions } from "@/hooks/use-userManagement-table"
+import Loader from "./Loader"
 
 const UserManagementTable: React.FC = () => {
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
@@ -337,8 +338,7 @@ const getStatusStyle = (status: string) => {
         </CardHeader>
         <CardContent>
           <div className="text-center py-12">
-            <p className="text-gray-500">No user data available.</p>
-            <Button onClick={onBack}>Go Back</Button>
+          <Loader/>
           </div>
         </CardContent>
       </Card>
@@ -346,7 +346,7 @@ const getStatusStyle = (status: string) => {
   };
    
   if (isUserDetailsLoading){
-    return <div>Loading...</div>
+   <Loader/>
   };
 
   return (
@@ -370,14 +370,9 @@ const getStatusStyle = (status: string) => {
                 <div>
                   <div className="flex items-center gap-3 mb-2">
                     <div className="bg-gray-100 rounded-full px-3 py-1 text-sm font-medium">
-                      {user.firstName? user.firstName.substring(0, 3).toUpperCase() : "N/A"}
+                     <div className="text-sm text-muted-foreground">{userProfile.fullname}</div>
                     </div>
-                    <div>
-                      <div className="font-semibold">
-                        {user.lastName || `${user.lastName} ${user.lastName}`}
-                      </div>
-                      <div className="text-sm text-muted-foreground">{"ID: " + user.id}</div>
-                    </div>
+                  
                   </div>
                 </div>
                 <Badge
@@ -396,7 +391,7 @@ const getStatusStyle = (status: string) => {
                 </div>
                 <div>
                   <div className="text-sm text-muted-foreground mb-1">Phone Number</div>
-                  <div>{userProfile.id ? userProfile.id : "N/A"}</div>{" "}
+                  <div>{user.phone}</div>{" "}
                   {/* Assuming user_id might be phone or similar, otherwise remove */}
                 </div>
                 <div>
@@ -529,13 +524,7 @@ const getStatusStyle = (status: string) => {
                   <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
                   <span className="ml-2 text-gray-500">Loading transactions...</span>
                 </div>
-              ) : isUserTransactionsError ? (
-                <div className="text-center py-12">
-                  <p className="text-red-500 mb-4">
-                    {"Error fetching transactions: " + userTransactionsError?.message}
-                  </p>
-                  <Button onClick={() => refetchUserTransactions()}>Try Again</Button>
-                </div>
+               
               ) : transactions.length === 0 && !isUserTransactionsFetching ? (
                 <div className="text-center py-12">
                   <div className="text-gray-400 mb-4">
@@ -547,15 +536,22 @@ const getStatusStyle = (status: string) => {
               ) : (
                 <div className="space-y-4">
                   <div className="grid grid-cols-3 gap-4 text-sm font-medium text-muted-foreground border-b pb-2">
+                    <div>S/N</div>
                     <div>Type/Date</div>
                     <div>Amount</div>
                     <div>Status</div>
                   </div>
-                  {transactions.map((transaction: Transaction) => (
+                  {transactions.map((transaction: Transaction, index) => (
                     <div
                       key={transaction.id}
                       className="grid grid-cols-3 gap-4 items-center py-3 border-b last:border-b-0"
                     >
+                      <div>
+                        <div className="font-medium">{transaction.transaction_type}</div>
+                        <div className="text-sm text-muted-foreground">
+                         {index + 1}
+                        </div>
+                      </div>
                       <div>
                         <div className="font-medium">{transaction.transaction_type}</div>
                         <div className="text-sm text-muted-foreground">

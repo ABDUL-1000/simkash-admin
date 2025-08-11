@@ -86,7 +86,7 @@ export default function SimPage() {
         <PageHeader
           title="View submitted Coordinator applications and verify their details before approving."
           subtitle=""
-          onAddClick={() => setIsModalOpen(true)}
+  
           
         />
 

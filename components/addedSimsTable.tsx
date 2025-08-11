@@ -177,7 +177,7 @@ const SimBatchesTable: React.FC<SimBatchesTableProps> = () => {
                 <TableRow>
                   <TableHead>S/N</TableHead>
                   <TableHead>Batch Name</TableHead>
-                  <TableHead>Network</TableHead>
+              
                   <TableHead>Status</TableHead>
                   <TableHead>Date Added</TableHead>
                   <TableHead>Quantity</TableHead>
@@ -197,7 +197,7 @@ const SimBatchesTable: React.FC<SimBatchesTableProps> = () => {
                       </div>
                     </TableCell>
                     <TableCell className="font-medium">{simBatch.batch_name}</TableCell>
-                    <TableCell className={getNetworkColor(simBatch.network)}>{simBatch.network || "N/A"}</TableCell>
+                 
                     <TableCell>{getStatusBadge(simBatch.status)}</TableCell>
                     <TableCell>
                       <div className="flex flex-col">

@@ -202,7 +202,7 @@ export const useSimsByBatchId = ({ batchId, page = 1, limit = 10 }: UseSimsByBat
     queryKey: simManagementKeys.simsInBatch(batchId, page, limit),
     queryFn: async (): Promise<SimsResponseBody> => {
       const { data } = await api.get<SimsApiResponse>(
-        `/api/v1/admin/sim/batch/${batchId}/sims?page=${page}&limit=${limit}`,
+        `/api/v1/admin/sim/sim-batch/${batchId}?page=${page}&limit=${limit}`,
       )
       if (data.responseSuccessful && data.responseBody) {
         return data.responseBody

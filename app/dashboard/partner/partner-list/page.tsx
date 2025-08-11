@@ -84,7 +84,7 @@ export default function SimPage() {
         <PageHeader
           title="View and manage all  partners on the platform."
           subtitle=""
-          onAddClick={() => setIsModalOpen(true)}
+         
        
         />
 
