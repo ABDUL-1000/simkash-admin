@@ -117,13 +117,7 @@ export default function Sidebar() {
         showForUser: true,
         dropdownKey: "partner"
       },
-      {
-        name: "Device SIM",
-        path: "/dashboard/device-sim",
-        icon: <Wallet className="h-5 w-5" />,
-        showForAgent: true,
-        showForUser: true,
-      },
+  
   
       {
         name: "Device SIM",
@@ -149,13 +143,7 @@ export default function Sidebar() {
         showForUser: true,
         dropdownKey: "sim-pro-management"
       },
-      {
-        name: "Bill Payments",
-        path: "/dashboard/bills",
-        icon: <ReceiptText className="h-5 w-5" />,
-        showForAgent: true,
-        showForUser: true,
-      },
+  
       {
         name: "Transactions",
         path: "/dashboard/transactions",
