@@ -114,7 +114,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="h-screen w-screen flex flex-col md:flex-row">
       {/* Left Side */}
       <div className="hidden w-1/2 md:flex relative flex-col items-center justify-center bg-white p-4">
         <div className="absolute top-4 left-10 text-sm text-black">

@@ -119,18 +119,7 @@ export default function Sidebar() {
       },
   
   
-      {
-        name: "Device SIM",
-        path: "/dashboard/device-sim",
-        icon: <CreditCard className="h-5 w-5" />,
-        subItems: [
-          { name: "Overview", path: "/dashboard/device-sim/overview" },
-          { name: "Inventory", path: "/dashboard/device-sim/inventory" },
-        ],
-        showForAgent: true,
-        showForUser: false,
-        dropdownKey: "deviceSim"
-      },
+   
       {
         name: "Simkash Pro",
         path: "/dashboard/sim-pro-management",
@@ -147,6 +136,13 @@ export default function Sidebar() {
       {
         name: "Transactions",
         path: "/dashboard/transactions",
+        icon: <ReceiptText className="h-5 w-5" />,
+        showForAgent: true,
+        showForUser: true,
+      },
+      {
+        name: "device sim",
+        path: "/dashboard/device-sim",
         icon: <ReceiptText className="h-5 w-5" />,
         showForAgent: true,
         showForUser: true,

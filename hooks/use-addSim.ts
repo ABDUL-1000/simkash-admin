@@ -43,7 +43,7 @@ export interface SimBatch {
   admin_id: number
   agent_id: number | null
   batch_name: string
-  network: string | null // Updated to allow null
+  network: string | null 
   quantity: number
   number_of_assigned: number
   status: string
