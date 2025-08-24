@@ -2226,7 +2226,7 @@ static async payWaecBill(data: {
       });
 
       const response = await fetch(
-        `${this.baseUrl}/api/v1/billpayment/transactions?${queryParams}`,
+        `${this.baseUrl}/api/v1/admin/user/transactions/all?${queryParams}`,
         {
           method: "GET",
           headers: {
@@ -2283,7 +2283,7 @@ static async payWaecBill(data: {
     });
 
     const response = await fetch(
-      `${this.baseUrl}/api/v1/user/transactions?${queryParams}`,
+      `${this.baseUrl}/api/v1/admin/user/transactions?${queryParams}`,
       {
         method: "GET",
         headers: {

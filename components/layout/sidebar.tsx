@@ -132,6 +132,19 @@ export default function Sidebar() {
         showForUser: true,
         dropdownKey: "sim-pro-management"
       },
+      {
+        name: "Inventory & Sales",
+        path: "/dashboard/inventory&customization",
+        icon: <CreditCard className="h-5 w-5" />,
+        subItems: [
+          { name: "Overview", path: "/dashboard/sim-pro-management/overview" },
+          { name: "Customize Inventory", path: "/dashboard/inventory&customization/customize-inventory" },
+          { name: "Expenses", path: "/dashboard/inventory&customization/expenses" },
+        ],
+        showForAgent: true,
+        showForUser: true,
+        dropdownKey: "inventory&customization"
+      },
   
       {
         name: "Transactions",

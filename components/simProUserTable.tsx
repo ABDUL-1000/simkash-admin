@@ -18,7 +18,7 @@ import {
 } from "lucide-react"
 
 
-import { SimProTable, useSimProTable } from "@/hooks/use-distributeSim"
+import {  useSimProTable } from "@/hooks/use-distributeSim"
 
 
 
