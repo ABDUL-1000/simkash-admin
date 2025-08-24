@@ -17,10 +17,9 @@ import {
   Edit,
 } from "lucide-react"
 
-
-import { useServices } from "@/hooks/use-inventory"
 import ServiceEditSheet from "@/components/modals/inventorySheet"
 import { DashboardLayout } from "@/components/dashboard-layout"
+import { useServices } from "@/hooks/use-inventory"
 
 const ServiceCustomizationTable: React.FC = () => {
   const [selectedServiceId, setSelectedServiceId] = useState<number | null>(null)
@@ -69,46 +68,42 @@ const ServiceCustomizationTable: React.FC = () => {
 
   if (isLoading && !isFetching) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Service Pricing & Customization</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-            <span className="ml-2 text-gray-500">Loading services...</span>
-          </div>
-        </CardContent>
-      </Card>
+      <DashboardLayout>
+        <Card>
+          <CardHeader>
+            <CardTitle>Service Pricing & Customization</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+              <span className="ml-2 text-gray-500">Loading services...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </DashboardLayout>
     )
   }
 
   if (isError) {
     return (
-         <DashboardLayout>
-
-       
-      <Card>
-        <CardHeader>
-          <CardTitle>Service Pricing & Customization</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-12">
-            <p className="text-red-500 mb-4">{"Error: " + error?.message}</p>
-            <Button onClick={() => refetch()}>Try Again</Button>
-          </div>
-        </CardContent>
-      </Card>
-      
+      <DashboardLayout>
+        <Card>
+          <CardHeader>
+            <CardTitle>Service Pricing & Customization</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-12">
+              <p className="text-red-500 mb-4">{"Error: " + error?.message}</p>
+              <Button onClick={() => refetch()}>Try Again</Button>
+            </div>
+          </CardContent>
+        </Card>
       </DashboardLayout>
     )
   }
 
   return (
-    <>
-     <DashboardLayout>
-
-    
+    <DashboardLayout>
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -197,6 +192,8 @@ const ServiceCustomizationTable: React.FC = () => {
                   )}
                 </TableBody>
               </Table>
+              
+              {/* Improved Pagination Controls */}
               {pagination && pagination.totalPages > 1 && (
                 <div className="flex items-center justify-center gap-2 pt-4">
                   <Button
@@ -208,18 +205,37 @@ const ServiceCustomizationTable: React.FC = () => {
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Previous
                   </Button>
-                  {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map((pageNumber) => (
-                    <Button
-                      key={pageNumber}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(pageNumber)}
-                      className={currentPage === pageNumber ? "bg-gray-100" : ""}
-                      disabled={isFetching}
-                    >
-                      {pageNumber}
-                    </Button>
-                  ))}
+                  
+                  {/* Show limited page numbers (max 5) */}
+                  {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                    let pageNumber: number
+                    
+                    // Calculate which pages to show based on current page
+                    if (currentPage <= 3) {
+                      pageNumber = i + 1
+                    } else if (currentPage >= pagination.totalPages - 2) {
+                      pageNumber = pagination.totalPages - 4 + i
+                    } else {
+                      pageNumber = currentPage - 2 + i
+                    }
+                    
+                    // Ensure page number is within valid range
+                    pageNumber = Math.max(1, Math.min(pageNumber, pagination.totalPages))
+                    
+                    return (
+                      <Button
+                        key={pageNumber}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pageNumber)}
+                        className={currentPage === pageNumber ? "bg-primary text-primary-foreground" : ""}
+                        disabled={isFetching}
+                      >
+                        {pageNumber}
+                      </Button>
+                    )
+                  })}
+                  
                   <Button
                     variant="outline"
                     size="sm"
@@ -243,8 +259,7 @@ const ServiceCustomizationTable: React.FC = () => {
           onClose={handleCloseSheet}
         />
       )}
-       </DashboardLayout>
-    </>
+    </DashboardLayout>
   )
 }
 

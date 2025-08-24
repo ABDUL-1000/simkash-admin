@@ -1,75 +1,50 @@
+// components/transaction-table.tsx
 "use client"
 
 import { useState, useEffect } from "react"
-import { Search, MoreVertical } from "lucide-react"
+import { Search, MoreVertical, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import Image from "next/image"
-import { AuthAPI } from "@/lib/API/api"
-
-interface BillTransaction {
-  id: number
-  wallet_id: number
-  transaction_type: string
-  amount: string
-  transaction_reference: string
-  status: "success" | "failed" | "pending" | "delivered"
-  description: string
-  processed_at: string
-  createdAt: string
-  updatedAt: string
-}
-
-interface Pagination {
-  page: number
-  limit: number
-  total: number
-  totalPages: number
-}
+import { useTransactions } from "@/hooks/use-transactions"
 
 export default function TransactionTable() {
-  const [transactions, setTransactions] = useState<BillTransaction[]>([])
-  const [pagination, setPagination] = useState<Pagination>({
+  const [currentPage, setCurrentPage] = useState(1)
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [searchQuery, setSearchQuery] = useState("")
+  const [debouncedSearch, setDebouncedSearch] = useState("")
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery)
+      setCurrentPage(1) // Reset to first page when search changes
+    }, 500) // 500ms debounce
+
+    return () => clearTimeout(timer)
+  }, [searchQuery])
+
+  const {
+    data: transactionsData,
+    isLoading,
+    isError,
+    error,
+  } = useTransactions({
+    page: currentPage,
+    limit: 10,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    search: debouncedSearch || undefined,
+  })
+
+  const transactions = transactionsData?.transactions || []
+  const pagination = transactionsData?.pagination || {
     page: 1,
     limit: 10,
     total: 0,
     totalPages: 1
-  })
-  const [loading, setLoading] = useState(true)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [statusFilter, setStatusFilter] = useState("all")
-
-  useEffect(() => {
-    fetchTransactions()
-  }, [pagination.page, statusFilter, searchQuery])
-
-  const fetchTransactions = async () => {
-    try {
-      setLoading(true)
-      const response = await AuthAPI.getAllTransactions({
-        page: pagination.page,
-        limit: pagination.limit,
-        status: statusFilter !== "all" ? statusFilter : undefined,
-        search: searchQuery
-      })
-      
-      if (response.success && response.data) {
-        setTransactions(response.data.transactions)
-        setPagination({
-          page: response.data.pagination.page,
-          limit: response.data.pagination.limit,
-          total: response.data.pagination.total,
-          totalPages: response.data.pagination.totalPages
-        })
-      }
-    } catch (error) {
-      console.error("Failed to fetch transactions:", error)
-    } finally {
-      setLoading(false)
-    }
   }
 
   const getStatusColor = (status: string) => {
@@ -99,8 +74,28 @@ export default function TransactionTable() {
 
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= pagination.totalPages) {
-      setPagination(prev => ({ ...prev, page }))
+      setCurrentPage(page)
     }
+  }
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatusFilter(value)
+    setCurrentPage(1) // Reset to first page when filter changes
+  }
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value)
+  }
+
+  if (isError) {
+    return (
+      <div className="w-full max-w-7xl mx-auto bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="p-6 text-center">
+          <p className="text-red-500 mb-4">Error: {error?.message || "Failed to load transactions"}</p>
+          <Button onClick={() => window.location.reload()}>Try Again</Button>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -113,15 +108,12 @@ export default function TransactionTable() {
               placeholder="Search transactions" 
               className="pl-10 bg-white border border-gray-200 rounded-full h-10" 
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
             />
           </div>
           <Select 
             value={statusFilter}
-            onValueChange={(value) => {
-              setStatusFilter(value)
-              setPagination(prev => ({ ...prev, page: 1 }))
-            }}
+            onValueChange={handleStatusFilterChange}
           >
             <SelectTrigger className="w-full sm:w-30 bg-white border border-gray-200 rounded-full h-10">
               <SelectValue placeholder="All Status" />
@@ -150,16 +142,22 @@ export default function TransactionTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {loading ? (
+              {isLoading ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
-                    Loading transactions...
+                    <div className="flex items-center justify-center">
+                      <Loader2 className="h-5 w-5 animate-spin mr-2" />
+                      Loading transactions...
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : transactions.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center py-8">
-                    No transactions found
+                    {debouncedSearch || statusFilter !== "all" 
+                      ? "No transactions match your search criteria" 
+                      : "No transactions found"
+                    }
                   </TableCell>
                 </TableRow>
               ) : (
@@ -204,7 +202,7 @@ export default function TransactionTable() {
           </Table>
         </div>
 
-        {!loading && transactions.length > 0 && (
+        {!isLoading && transactions.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
             <div className="text-sm text-gray-500">
               Showing page {pagination.page} of {pagination.totalPages}
@@ -215,7 +213,7 @@ export default function TransactionTable() {
                 variant="outline"
                 className="text-sm rounded-full"
                 onClick={() => handlePageChange(pagination.page - 1)}
-                disabled={pagination.page === 1}
+                disabled={pagination.page === 1 || isLoading}
               >
                 Previous
               </Button>
@@ -239,6 +237,7 @@ export default function TransactionTable() {
                       variant={pagination.page === pageNum ? "default" : "outline"}
                       className={`w-8 h-8 p-0 text-sm rounded-full ${pagination.page === pageNum ? "bg-primary text-white" : "bg-white"}`}
                       onClick={() => handlePageChange(pageNum)}
+                      disabled={isLoading}
                     >
                       {pageNum}
                     </Button>
@@ -250,7 +249,7 @@ export default function TransactionTable() {
                 variant="default"
                 className="text-sm rounded-full bg-[#111827]"
                 onClick={() => handlePageChange(pagination.page + 1)}
-                disabled={pagination.page === pagination.totalPages}
+                disabled={pagination.page === pagination.totalPages || isLoading}
               >
                 Next
               </Button>
