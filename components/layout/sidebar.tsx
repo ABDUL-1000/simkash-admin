@@ -126,7 +126,7 @@ export default function Sidebar() {
         icon: <CreditCard className="h-5 w-5" />,
         subItems: [
           { name: "Overview", path: "/dashboard/sim-pro-management/overview" },
-          { name: "Customization", path: "/dashboard/simProManagement/customization" },
+          { name: "Customization", path: "/dashboard/sim-pro-management/customization" },
         ],
         showForAgent: true,
         showForUser: true,
