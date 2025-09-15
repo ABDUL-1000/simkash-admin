@@ -154,6 +154,13 @@ export default function Sidebar() {
         showForUser: true,
       },
       {
+        name: "Activated Sims",
+        path: "/dashboard/activatedSims",
+        icon: <ReceiptText className="h-5 w-5" />,
+        showForAgent: true,
+        showForUser: true,
+      },
+      {
         name: "device sim",
         path: "/dashboard/device-sim",
         icon: <ReceiptText className="h-5 w-5" />,

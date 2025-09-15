@@ -142,7 +142,8 @@ const UserManagementTable: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[100px]">S/N</TableHead>
-                  <TableHead>Full Name / Email</TableHead>
+                  <TableHead>Full Name </TableHead>
+                  <TableHead>Email</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>KYC Status</TableHead>
                   <TableHead>Status</TableHead>
@@ -159,7 +160,10 @@ const UserManagementTable: React.FC = () => {
                       {(currentPage - 1) * (pagination?.limit || 10) + (index + 1)}
                     </TableCell>
                     <TableCell>
-                      <span>{user.username || user.email}</span>
+                      <span>{user.username}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span>{user.email}</span>
                     </TableCell>
                     <TableCell>
                       <span className="text-sm text-muted-foreground">{user.phone}</span>
