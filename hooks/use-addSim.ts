@@ -13,14 +13,14 @@ export interface AddSimBatchResponse {
     id: number
     batch_name: string
     quantity: number
-    network: string | null // Updated to allow null
+    network: string | null 
     status: string
     createdAt: string
     updatedAt: string
   }
 }
 
-// New types for adding SIMs to an existing batch
+
 export interface AddSimsPayload {
   batchId: number
   network: string
@@ -52,7 +52,7 @@ export interface SimBatch {
   updatedAt: string
 }
 
-// New types for fetching individual SIMs within a batch
+
 export interface Sim {
   id: number
   batchId: number
@@ -91,7 +91,7 @@ export interface SimsApiResponse {
   responseBody?: SimsResponseBody
 }
 
-// New types for distributable batches and distribution payload/response
+
 export interface DistributableSimBatch {
   id: number
   batch_name: string

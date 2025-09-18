@@ -1,29 +1,26 @@
 "use client"
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronDown, Search } from "lucide-react"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
 import { SimBatch, useSimBatches } from "@/hooks/use-addSim"
-
 
 interface BatchSelectWithSearchProps {
   value: number | null
   onChange: (batchId: number | null, batchNetwork: string | null, batchName: string | null) => void
-  // New prop: optional array of batches to use instead of fetching internally
   batches?: SimBatch[]
 }
 
 const BatchSelectWithSearch: React.FC<BatchSelectWithSearchProps> = ({ value, onChange, batches }) => {
-  const [open, setOpen] = React.useState(false)
-  // Use provided batches or fetch them if not provided
+  const [searchTerm, setSearchTerm] = React.useState("")
   const { data: fetchedBatchesData, isLoading: isLoadingFetchedBatches } = useSimBatches({ page: 1, limit: 100 })
 
   const allBatches = batches || fetchedBatchesData?.simBatch || []
-  const isLoading = batches ? false : isLoadingFetchedBatches // If batches are provided, no internal loading
+  const isLoading = batches ? false : isLoadingFetchedBatches
 
   const selectedBatch = React.useMemo(() => {
     if (allBatches && value) {
@@ -32,59 +29,65 @@ const BatchSelectWithSearch: React.FC<BatchSelectWithSearchProps> = ({ value, on
     return null
   }, [allBatches, value])
 
-  const batchOptions = React.useMemo(() => {
-    return (
-      allBatches.map((batch) => ({
-        value: batch.id,
-        label: `${batch.batch_name} (${batch.network || "No Network"}) - ${batch.quantity} SIMs`,
-        network: batch.network,
-        name: batch.batch_name,
-      })) || []
+  // Filter batches based on search term
+  const filteredBatches = React.useMemo(() => {
+    if (!searchTerm) return allBatches
+    return allBatches.filter((batch) => 
+      batch.batch_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (batch.network && batch.network.toLowerCase().includes(searchTerm.toLowerCase()))
     )
-  }, [allBatches])
+  }, [allBatches, searchTerm])
+
+  const handleValueChange = (newValue: string) => {
+    const batchId = newValue ? parseInt(newValue) : null
+    const selected = allBatches.find(batch => batch.id === batchId)
+    onChange(batchId, selected?.network || null, selected?.batch_name || null)
+  }
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between bg-transparent"
-          disabled={isLoading}
-        >
+    <Select value={value?.toString()} onValueChange={handleValueChange} disabled={isLoading}>
+      <SelectTrigger className="w-full justify-between bg-transparent">
+        <SelectValue placeholder="Select batch...">
           {selectedBatch ? selectedBatch.batch_name : "Select batch..."}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
-        <Command>
-          <CommandInput placeholder="Search batch..." />
-          <CommandList>
-            <CommandEmpty>No batch found.</CommandEmpty>
-            <CommandGroup>
-              {isLoading ? (
-                <CommandItem disabled>Loading batches...</CommandItem>
-              ) : (
-                batchOptions.map((batch) => (
-                  <CommandItem
-                    key={batch.value}
-                    value={batch.label}
-                    onSelect={() => {
-                      onChange(batch.value, batch.network, batch.name)
-                      setOpen(false)
-                    }}
-                  >
-                    <Check className={cn("mr-2 h-4 w-4", value === batch.value ? "opacity-100" : "opacity-0")} />
-                    {batch.label}
-                  </CommandItem>
-                ))
-              )}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent className="p-0">
+        <div className="p-2 border-b">
+          <div className="relative">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search batches..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onClick={(e) => e.stopPropagation()} // Prevent closing the dropdown
+            />
+          </div>
+        </div>
+        
+        <div className="max-h-60 overflow-y-auto">
+          {isLoading ? (
+            <div className="py-2 px-4 text-sm text-muted-foreground">Loading batches...</div>
+          ) : filteredBatches.length === 0 ? (
+            <div className="py-2 px-4 text-sm text-muted-foreground">
+              {searchTerm ? "No batches found" : "No batches available"}
+            </div>
+          ) : (
+            filteredBatches.map((batch) => (
+              <SelectItem key={batch.id} value={batch.id.toString()}>
+                <div className="flex items-center">
+                  <Check className={cn(
+                    "mr-2 h-4 w-4 opacity-0",
+                    value === batch.id && "opacity-100"
+                  )} />
+                  {`${batch.batch_name} (${batch.network || "No Network"}) - ${batch.quantity} SIMs`}
+                </div>
+              </SelectItem>
+            ))
+          )}
+        </div>
+      </SelectContent>
+    </Select>
   )
 }
 

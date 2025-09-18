@@ -88,7 +88,6 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
     }
   }, [watchedBatchId, batchesData, setValue])
 
-  // Update form 'sims' field whenever 'simNumbers' state changes
   useEffect(() => {
     setValue("sims", simNumbers, { shouldValidate: true })
   }, [simNumbers, setValue])
@@ -176,9 +175,9 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
                   if (batchNetwork) {
                     setValue("network", batchNetwork, { shouldValidate: true })
                   } else {
-                    setValue("network", "", { shouldValidate: true }) // Clear network if batch has none
+                    setValue("network", "", { shouldValidate: true }) 
                   }
-                  // setSelectedBatchDetails is updated by the useEffect based on watchedBatchId
+                 
                 }}
               />
               <FormError message={errors.batchId?.message} />
