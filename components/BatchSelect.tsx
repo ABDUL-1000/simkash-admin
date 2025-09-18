@@ -60,7 +60,7 @@ const BatchSelectWithSearch: React.FC<BatchSelectWithSearchProps> = ({ value, on
               className="pl-8"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              onClick={(e) => e.stopPropagation()} // Prevent closing the dropdown
+              onClick={(e) => e.stopPropagation()} 
             />
           </div>
         </div>
@@ -80,7 +80,7 @@ const BatchSelectWithSearch: React.FC<BatchSelectWithSearchProps> = ({ value, on
                     "mr-2 h-4 w-4 opacity-0",
                     value === batch.id && "opacity-100"
                   )} />
-                  {`${batch.batch_name} (${batch.network || "No Network"}) - ${batch.quantity} SIMs`}
+                  {`${batch.batch_name} - ${batch.quantity} SIMs`}
                 </div>
               </SelectItem>
             ))
