@@ -3,8 +3,8 @@
 import type React from "react"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { X, Plus, CheckCircle, Loader2, ArrowLeft } from "lucide-react"
+import { Input} from "@/components/ui/input"
+import { X, Plus, CheckCircle, Loader2, ArrowLeft, Upload, FileText } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
@@ -13,14 +13,19 @@ import { FormError } from "@/components/formError"
 
 import { toast } from "sonner"
 import BatchSelectWithSearch from "../BatchSelect" // Assuming this is in components/BatchSelect.tsx
-import { SimBatch, useAddSimsToBatch, useSimBatches } from "@/hooks/use-addSim"
+import { type SimBatch, useAddSimsToBatch, useSimBatches } from "@/hooks/use-addSim"
+import { Textarea } from "../ui/textarea"
 
 const addSimsSchema = z.object({
   batchId: z.number().min(1, "Batch is required"),
   network: z.string(),
-  sims: z
-    .array(z.string().min(11, "Must be a valid 11-digit phone number").regex(/^[0-9]{11}$/, "Must be a valid 11-digit phone number").max(11, "Must be a valid 11-digit phone number"))
-    
+  sims: z.array(
+    z
+      .string()
+      .min(11, "Must be a valid 11-digit phone number")
+      .regex(/^[0-9]{11}$/, "Must be a valid 11-digit phone number")
+      .max(11, "Must be a valid 11-digit phone number"),
+  ),
 })
 
 const networks = [
@@ -42,6 +47,8 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
   const [currentStep, setCurrentStep] = useState<"form" | "summary" | "success">("form")
   const [summaryData, setSummaryData] = useState<FormInputs | null>(null)
   const [simInput, setSimInput] = useState("")
+  const [bulkInput, setBulkInput] = useState("")
+  const [inputMode, setInputMode] = useState<"single" | "bulk">("single")
   const [simNumbers, setSimNumbers] = useState<string[]>([])
   const [selectedBatchDetails, setSelectedBatchDetails] = useState<SimBatch | null>(null)
   const addSimsMutation = useAddSimsToBatch()
@@ -66,7 +73,6 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
   const watchedBatchId = watch("batchId")
   const watchedNetwork = watch("network")
 
-  // Fetch batch details to get network if not already known
   const { data: batchesData } = useSimBatches({ page: 1, limit: 100 }) // Fetch all batches for lookup
 
   useEffect(() => {
@@ -74,11 +80,9 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
       const batch = batchesData.simBatch.find((b) => b.id === watchedBatchId)
       if (batch) {
         setSelectedBatchDetails(batch)
-        // If batch has a network, pre-fill it and make it read-only
         if (batch.network) {
           setValue("network", batch.network, { shouldValidate: true })
         } else {
-          // If batch network is null, allow user to select
           setValue("network", "", { shouldValidate: true })
         }
       }
@@ -97,17 +101,55 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
     const simNumberSchema = z.string().regex(/^[0-9]{11}$/, "Must be a valid 11-digit phone number")
 
     try {
-      simNumberSchema.parse(trimmedSimInput) // Validate individual SIM
+      simNumberSchema.parse(trimmedSimInput)
       if (trimmedSimInput && !simNumbers.includes(trimmedSimInput)) {
         setSimNumbers((prev) => [...prev, trimmedSimInput])
         setSimInput("")
-        clearErrors("sims") // Clear error if successfully added
+        clearErrors("sims")
       } else if (simNumbers.includes(trimmedSimInput)) {
         toast.error("Duplicate SIM number.", { description: `${trimmedSimInput} is already in the list.` })
       }
     } catch (e: any) {
       toast.error("Invalid SIM number", { description: e.errors[0].message })
     }
+  }
+
+  const handleBulkImport = () => {
+    const parsedNumbers = parseBulkInput(bulkInput)
+
+    if (parsedNumbers.length === 0) {
+      toast.error("No valid SIM numbers found", {
+        description: "Please ensure numbers are 11 digits and separated by new lines, commas, or spaces.",
+      })
+      return
+    }
+
+    const newNumbers = parsedNumbers.filter((num) => !simNumbers.includes(num))
+    const duplicateCount = parsedNumbers.length - newNumbers.length
+
+    if (newNumbers.length > 0) {
+      setSimNumbers((prev) => [...prev, ...newNumbers])
+      setBulkInput("")
+      clearErrors("sims")
+
+      toast.success(`Added ${newNumbers.length} SIM numbers`, {
+        description: duplicateCount > 0 ? `${duplicateCount} duplicates were skipped.` : undefined,
+      })
+    } else {
+      toast.error("All numbers are duplicates", {
+        description: "These numbers are already in your list.",
+      })
+    }
+  }
+
+  const parseBulkInput = (text: string): string[] => {
+    const numbers = text
+      .split(/[\n,;\s]+/)
+      .map((num) => num.trim())
+      .filter((num) => num.length > 0)
+      .filter((num) => /^[0-9]{11}$/.test(num))
+
+    return [...new Set(numbers)]
   }
 
   const handleRemoveSimNumber = (simToRemove: string) => {
@@ -123,7 +165,7 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
     if (!summaryData) return
     try {
       const response = await addSimsMutation.mutateAsync(summaryData)
-  
+
       setCurrentStep("success")
       if (onSuccess) {
         onSuccess(response.responseBody)
@@ -142,6 +184,7 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
     setSummaryData(null)
     setSimNumbers([])
     setSimInput("")
+    setBulkInput("")
     setSelectedBatchDetails(null)
     reset({
       batchId: 0,
@@ -157,12 +200,12 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
 
   return (
     <>
-      {/* Main Add SIMs Modal */}
       <ReusableModal
         isOpen={isOpen && currentStep !== "success"}
         onClose={handleCloseAllModals}
         title={currentStep === "form" ? "Add SIMs " : "Confirm Addition"}
-        subTitle=''
+        subTitle=""
+        className="max-h-[90vh] overflow-y-auto" // Added scroll to modal
       >
         {currentStep === "form" && (
           <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4">
@@ -175,9 +218,8 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
                   if (batchNetwork) {
                     setValue("network", batchNetwork, { shouldValidate: true })
                   } else {
-                    setValue("network", "", { shouldValidate: true }) 
+                    setValue("network", "", { shouldValidate: true })
                   }
-                 
                 }}
               />
               <FormError message={errors.batchId?.message} />
@@ -191,7 +233,7 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
                 id="network"
                 {...register("network")}
                 className="w-full p-2 border border-gray-300 rounded-md bg-white"
-                disabled={!!selectedBatchDetails?.network} // Disable if batch already has a network
+                disabled={!!selectedBatchDetails?.network}
               >
                 <option value="">Choose network provider</option>
                 {networks.map((network) => (
@@ -207,26 +249,81 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
             </div>
 
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700">Add SIM Numbers</label>
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  maxLength={11}
-                  value={simInput}
-                  onChange={(e) => setSimInput(e.target.value)}
-                  placeholder="08012345678"
-                  className="flex-1"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault()
-                      handleAddSimNumber()
-                    }
-                  }}
-                />
-                <Button type="button" onClick={handleAddSimNumber} disabled={!simInput.trim()} variant="outline">
-                  <Plus className="h-4 w-4" />
-                </Button>
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700">Add SIM Numbers</label>
+                <div className="flex bg-gray-100 rounded-md p-1">
+                  <button
+                    type="button"
+                    onClick={() => setInputMode("single")}
+                    className={`px-3 py-1 text-xs rounded transition-colors ${
+                      inputMode === "single" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <Plus className="h-3 w-3 inline mr-1" />
+                    Single
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setInputMode("bulk")}
+                    className={`px-3 py-1 text-xs rounded transition-colors ${
+                      inputMode === "bulk" ? "bg-white text-gray-900 shadow-sm" : "text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    <Upload className="h-3 w-3 inline mr-1" />
+                    Bulk
+                  </button>
+                </div>
               </div>
+
+              {inputMode === "single" ? (
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    maxLength={11}
+                    value={simInput}
+                    onChange={(e) => setSimInput(e.target.value)}
+                    placeholder="08012345678"
+                    className="flex-1"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault()
+                        handleAddSimNumber()
+                      }
+                    }}
+                  />
+                  <Button type="button" onClick={handleAddSimNumber} disabled={!simInput.trim()} variant="outline">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <Textarea
+                    value={bulkInput}
+                    onChange={(e) => setBulkInput(e.target.value)}
+                    placeholder="Paste multiple SIM numbers here...&#10;08012345678&#10;08087654321&#10;08011223344&#10;&#10;Numbers can be separated by new lines, commas, or spaces."
+                    className="min-h-[120px] max-h-[200px] resize-y" // Added max height and vertical resize
+                    rows={6}
+                  />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-gray-500">
+                      <FileText className="h-3 w-3 inline mr-1" />
+                      {bulkInput
+                        ? `${parseBulkInput(bulkInput).length} valid numbers detected`
+                        : "Paste your numbers above"}
+                    </p>
+                    <Button
+                      type="button"
+                      onClick={handleBulkImport}
+                      disabled={!bulkInput.trim()}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <Upload className="h-3 w-3 mr-1" />
+                      Import
+                    </Button>
+                  </div>
+                </div>
+              )}
               <FormError message={errors.sims?.message} />
             </div>
 
@@ -296,7 +393,6 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
           </div>
         )}
       </ReusableModal>
-      {/* Success Modal */}
       <ReusableModal
         isOpen={currentStep === "success"}
         onClose={handleSuccessModalClose}
@@ -318,6 +414,7 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
               setSummaryData(null)
               setSimNumbers([])
               setSimInput("")
+              setBulkInput("")
               setSelectedBatchDetails(null)
               reset({
                 batchId: 0,
@@ -328,6 +425,7 @@ const AddSimsModal: React.FC<AddSimsModalProps> = ({ isOpen, onClose, onSuccess 
             variant: "outline",
           },
         ]}
+        className="max-h-[90vh] overflow-y-auto" // Added scroll to success modal too
       />
     </>
   )
